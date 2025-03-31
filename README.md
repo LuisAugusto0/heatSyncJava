@@ -1,51 +1,51 @@
 # HeatSync
 
-A Java desktop application for monitoring system temperatures and controlling external cooling devices via Bluetooth.
+Uma aplicação desktop Java para monitorar temperaturas do sistema e controlar dispositivos de resfriamento externos via Bluetooth.
 
-## Features
+## Recursos
 
-- Real-time temperature monitoring for:
+- Monitoramento de temperatura em tempo real para:
   - CPU
   - GPU
-  - Disk
-- Power consumption monitoring:
-  - CPU power
-  - GPU power
-  - Total system power
-- Bluetooth Low Energy (BLE) connectivity:
-  - Device discovery with RSSI filtering
-  - Device connection management
-  - Fan control based on system temperatures
-- Automatic and manual fan control modes
-- Simple and intuitive Swing GUI interface
+  - Disco
+- Monitoramento do consumo de energia:
+  - Energia da CPU
+  - Energia da GPU
+  - Energia total do sistema
+- Conectividade Bluetooth Low Energy (BLE):
+  - Descoberta de dispositivos com filtragem RSSI
+  - Gerenciamento de conexão de dispositivos
+  - Controle de ventilador baseado nas temperaturas do sistema
+- Modos de controle automático e manual do ventilador
+- Interface gráfica Swing simples e intuitiva
 
-## Requirements
+## Requisitos
 
-- Java 17 or higher
-- Maven 3.6 or higher
-- Linux operating system (for hardware temperature monitoring)
-- Bluetooth adapter with BLE support
-- BlueZ (for Linux Bluetooth functionality)
+- Java 17 ou superior
+- Maven 3.6 ou superior
+- Sistema operacional Linux (para monitoramento de temperatura do hardware)
+- Adaptador Bluetooth com suporte a BLE
+- BlueZ (para funcionalidade Bluetooth no Linux)
 
-## Building the Project
+## Compilando o Projeto
 
-1. Clone the repository:
+1. Clone o repositório:
 ```bash
 git clone https://github.com/yourusername/heatSyncJava.git
 cd heatSyncJava
 ```
 
-2. Build the project using Maven:
+2. Compile o projeto usando Maven:
 ```bash
 mvn clean install
 ```
 
-3. Run the application:
+3. Execute a aplicação:
 ```bash
 mvn exec:java -Dexec.mainClass="com.heatsync.HeatSyncApp"
 ```
 
-## Project Structure
+## Estrutura do Projeto
 
 ```
 heatSyncJava/
@@ -79,39 +79,39 @@ heatSyncJava/
 └── pom.xml
 ```
 
-## Architecture
+## Arquitetura
 
-The application follows a modular architecture:
+A aplicação segue uma arquitetura modular:
 
-1. **Presentation Layer** (`ui` package):
-   - MainWindow - Main application container
-   - TemperaturePanel - Displays temperature and power data
-   - BluetoothPanel - Interface for Bluetooth device discovery and control
+1. **Camada de Apresentação** (`ui` package):
+   - MainWindow - Contêiner principal da aplicação
+   - TemperaturePanel - Exibe dados de temperatura e potência
+   - BluetoothPanel - Interface para descoberta e controle de dispositivos Bluetooth
 
-2. **Controller Layer** (`controller` package):
-   - MonitoringController - Coordinates temperature monitoring and updates
+2. **Camada de Controle** (`controller` package):
+   - MonitoringController - Coordena monitoramento e atualizações
 
-3. **Service Layer** (`service` package):
-   - TemperatureMonitor - Hardware temperature reading
-   - PowerMonitor - Power consumption estimation
-   - BluetoothService - Facade for all Bluetooth operations
+3. **Camada de Serviço** (`service` package):
+   - TemperatureMonitor - Leitura de temperatura do hardware
+   - PowerMonitor - Estimativa de consumo de energia
+   - BluetoothService - Facade para todas as operações Bluetooth
 
-4. **Bluetooth Module** (`service.bluetooth` package):
-   - BluetoothManager - Coordinates Bluetooth components
-   - BluetoothDeviceScanner - Bluetooth device discovery
-   - BluetoothConnectionHandler - Connection management
-   - BluetoothDataHandler - Data exchange with devices
-   - BluetoothEventListener - Event notification interface
+4. **Módulo Bluetooth** (`service.bluetooth` package):
+   - BluetoothManager - Coordena componentes Bluetooth
+   - BluetoothDeviceScanner - Descoberta de dispositivos Bluetooth
+   - BluetoothConnectionHandler - Gerenciamento de conexão
+   - BluetoothDataHandler - Troca de dados com dispositivos
+   - BluetoothEventListener - Interface de notificação de eventos
 
-## Dependencies
+## Dependências
 
-- **JSensors (2.0.0)** - Hardware monitoring library for Linux
-- **Blessed-Bluez** - Bluetooth Low Energy library for Linux
-  - Based on BlueZ and D-Bus
-- **SLF4J/Logback** - Logging framework
-- **JUnit (4.13.2)** - Testing framework
-- **Swing** - GUI components (JDK built-in)
+- **JSensors (2.0.0)** - Biblioteca de monitoramento de hardware para Linux
+- **Blessed-Bluez** - Biblioteca Bluetooth Low Energy para Linux
+  - Baseada no BlueZ e D-Bus
+- **SLF4J/Logback** - Estrutura de registro
+- **JUnit (4.13.2)** - Estrutura de teste
+- **Swing** - Componentes GUI (JDK integrado)
 
-## License
+## Licença
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Este projeto é licenciado sob a Licença MIT - veja o arquivo LICENSE para detalhes.

@@ -13,7 +13,7 @@ A Java desktop application for monitoring system temperatures and controlling ex
 
 ## Requirements
 
-- Java 11 or higher
+- Java 17 or higher
 - Maven 3.6 or higher
 - Linux operating system (for hardware temperature monitoring)
 

@@ -40,8 +40,8 @@ O sistema oferece uma **interface gráfica local (GUI)** para o usuário monitor
 ---
 
 ## 🧪 Testes e Validações
-- [ ] Testar leitura térmica no console
+- [X] Testar leitura térmica no console
 - [ ] Validar envio de dados ao dispositivo via Bluetooth serial
 - [ ] Validar recepção de dados do dispositivo (ex: RPM)
-- [ ] Testar GUI com dados dinâmicos
+- [X] Testar GUI com dados dinâmicos
 - [ ] Teste de desconexão/reconexão Bluetooth

@@ -5,12 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Responsável pela transferência de dados entre o aplicativo e dispositivos Bluetooth.
+ * Responsible for data transfer between the application and Bluetooth devices.
  */
 public class BluetoothDataHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BluetoothDataHandler.class);
     
-    // UUIDs para serviços e características (a serem implementados)
+    // UUIDs for services and characteristics (to be implemented)
     // private static final UUID COOLER_SERVICE_UUID = UUID.fromString("..."); 
     // private static final UUID TEMP_CHARACTERISTIC_UUID = UUID.fromString("...");
     // private static final UUID RPM_CHARACTERISTIC_UUID = UUID.fromString("...");
@@ -19,21 +19,21 @@ public class BluetoothDataHandler {
     private final BluetoothConnectionHandler connectionHandler;
     
     /**
-     * Cria um novo manipulador de dados Bluetooth.
+     * Creates a new Bluetooth data handler.
      * 
-     * @param connectionHandler O manipulador de conexão Bluetooth
+     * @param connectionHandler The Bluetooth connection handler
      */
     public BluetoothDataHandler(BluetoothConnectionHandler connectionHandler) {
         this.connectionHandler = connectionHandler;
     }
     
     /**
-     * Envia dados de temperatura para o periférico conectado.
+     * Sends temperature data to the connected peripheral.
      * 
-     * @param cpuTemp Temperatura da CPU
-     * @param gpuTemp Temperatura da GPU
-     * @param diskTemp Temperatura do disco
-     * @return true se os dados foram enviados, false caso contrário
+     * @param cpuTemp CPU temperature
+     * @param gpuTemp GPU temperature
+     * @param diskTemp Disk temperature
+     * @return true if the data was sent, false otherwise
      */
     public boolean sendTemperatureData(double cpuTemp, double gpuTemp, double diskTemp) {
         if (!connectionHandler.isConnected()) {
@@ -48,17 +48,17 @@ public class BluetoothDataHandler {
         }
         
         LOGGER.info("Would send temperature data: CPU={}, GPU={}, Disk={}", cpuTemp, gpuTemp, diskTemp);
-        // Implementação futura:
+        // Future implementation:
         // byte[] data = formatTemperatureData(cpuTemp, gpuTemp, diskTemp);
         // peripheral.writeCharacteristic(COOLER_SERVICE_UUID, TEMP_CHARACTERISTIC_UUID, data, WriteType.WITH_RESPONSE);
-        return false; // Por enquanto, apenas simulação
+        return false; // For now, just simulation
     }
     
     /**
-     * Envia um valor PWM para o periférico conectado.
+     * Sends a PWM value to the connected peripheral.
      * 
-     * @param pwmValue Valor PWM (ex: 0-100)
-     * @return true se o comando foi enviado, false caso contrário
+     * @param pwmValue PWM value (e.g., 0-100)
+     * @return true if the command was sent, false otherwise
      */
     public boolean sendPwmCommand(int pwmValue) {
         if (!connectionHandler.isConnected()) {
@@ -73,16 +73,16 @@ public class BluetoothDataHandler {
         }
         
         LOGGER.info("Would send PWM command: {}", pwmValue);
-        // Implementação futura:
+        // Future implementation:
         // byte[] data = new byte[]{(byte) pwmValue};
         // peripheral.writeCharacteristic(COOLER_SERVICE_UUID, PWM_CHARACTERISTIC_UUID, data, WriteType.WITHOUT_RESPONSE);
-        return false; // Por enquanto, apenas simulação
+        return false; // For now, just simulation
     }
     
     /**
-     * Lê dados do periférico (ex: RPM).
+     * Reads data from the peripheral (e.g., RPM).
      * 
-     * @return Os dados lidos ou null se não foi possível ler
+     * @return The data read or null if reading was not possible
      */
     public String receiveData() {
         if (!connectionHandler.isConnected()) {
@@ -97,23 +97,23 @@ public class BluetoothDataHandler {
         }
         
         LOGGER.info("Would receive data from peripheral");
-        // Implementação futura:
+        // Future implementation:
         // byte[] value = peripheral.readCharacteristic(COOLER_SERVICE_UUID, RPM_CHARACTERISTIC_UUID);
         // return parseRpmData(value);
-        return null; // Por enquanto, apenas simulação
+        return null; // For now, just simulation
     }
     
     /**
-     * Formata os dados de temperatura para envio.
+     * Formats temperature data for sending.
      * 
-     * @param cpuTemp Temperatura da CPU
-     * @param gpuTemp Temperatura da GPU
-     * @param diskTemp Temperatura do disco
-     * @return Os dados formatados em bytes
+     * @param cpuTemp CPU temperature
+     * @param gpuTemp GPU temperature
+     * @param diskTemp Disk temperature
+     * @return The formatted data in bytes
      */
     private byte[] formatTemperatureData(double cpuTemp, double gpuTemp, double diskTemp) {
-        // Implementação futura - converter temperaturas para formato adequado
-        // Ex: Protocolo simples com 3 bytes, um para cada temperatura
+        // Future implementation - convert temperatures to appropriate format
+        // E.g., Simple protocol with 3 bytes, one for each temperature
         byte[] data = new byte[3];
         data[0] = (byte) Math.min(cpuTemp, 255);
         data[1] = (byte) Math.min(gpuTemp, 255);
@@ -122,18 +122,18 @@ public class BluetoothDataHandler {
     }
     
     /**
-     * Analisa os dados de RPM recebidos.
+     * Parses received RPM data.
      * 
-     * @param data Os dados recebidos
-     * @return Os dados interpretados
+     * @param data The received data
+     * @return The interpreted data
      */
     private String parseRpmData(byte[] data) {
-        // Implementação futura - interpretar os dados recebidos do dispositivo
+        // Future implementation - interpret the data received from the device
         if (data == null || data.length == 0) {
             return null;
         }
         
-        // Exemplo: interpretar primeiro byte como RPM dividido por 10
+        // Example: interpret first byte as RPM divided by 10
         int rpm = data[0] * 10;
         return String.format("RPM: %d", rpm);
     }

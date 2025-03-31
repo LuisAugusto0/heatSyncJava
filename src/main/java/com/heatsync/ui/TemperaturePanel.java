@@ -29,7 +29,7 @@ public class TemperaturePanel extends JPanel {
      */
     private void initializeUI() {
         setLayout(new GridLayout(6, 1, 5, 5));
-        setBorder(BorderFactory.createTitledBorder("Temperaturas e Consumo"));
+        setBorder(BorderFactory.createTitledBorder("Temperatures and Power Consumption"));
         
         cpuTempLabel = new JLabel("CPU Temperature: --°C");
         gpuTempLabel = new JLabel("GPU Temperature: --°C");

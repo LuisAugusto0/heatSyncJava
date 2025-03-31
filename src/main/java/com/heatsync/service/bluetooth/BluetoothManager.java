@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Classe principal que coordena todos os componentes Bluetooth.
+ * Main class that coordinates all Bluetooth components.
  */
 public class BluetoothManager implements BluetoothEventListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(BluetoothManager.class);
@@ -22,7 +22,7 @@ public class BluetoothManager implements BluetoothEventListener {
     private BluetoothEventListener externalEventListener;
     
     /**
-     * Callback para gerenciar eventos do Bluetooth Central Manager.
+     * Callback to manage events from the Bluetooth Central Manager.
      */
     private final BluetoothCentralManagerCallback centralManagerCallback = new BluetoothCentralManagerCallback() {
         @Override
@@ -31,7 +31,7 @@ public class BluetoothManager implements BluetoothEventListener {
             String address = peripheral.getAddress();
             int rssi = scanResult.getRssi();
             
-            // Processar o dispositivo descoberto
+            // Process the discovered device
             deviceScanner.processDiscoveredDevice(peripheral, name, address, rssi);
         }
 
@@ -40,7 +40,7 @@ public class BluetoothManager implements BluetoothEventListener {
             LOGGER.info("Connected to peripheral: {}", peripheral.getAddress());
             connectionHandler.handleDeviceConnected(peripheral);
             
-            // Notificar o listener externo
+            // Notify the external listener
             if (externalEventListener != null) {
                 externalEventListener.onDeviceConnected(peripheral);
             }
@@ -51,7 +51,7 @@ public class BluetoothManager implements BluetoothEventListener {
             LOGGER.warn("Disconnected from peripheral: {} with status {}", peripheral.getAddress(), status);
             connectionHandler.handleDeviceDisconnected(peripheral, status);
             
-            // Notificar o listener externo
+            // Notify the external listener
             if (externalEventListener != null) {
                 externalEventListener.onDeviceDisconnected(peripheral, status);
             }
@@ -67,7 +67,7 @@ public class BluetoothManager implements BluetoothEventListener {
         public void onScanFailed(int errorCode) {
             LOGGER.error("Scan failed with error code: {}", errorCode);
             
-            // Notificar o listener externo
+            // Notify the external listener
             if (externalEventListener != null) {
                 externalEventListener.onScanFailed(errorCode);
             }
@@ -75,14 +75,14 @@ public class BluetoothManager implements BluetoothEventListener {
     };
     
     /**
-     * Cria um novo gerenciador Bluetooth.
+     * Creates a new Bluetooth manager.
      */
     public BluetoothManager() {
         init();
     }
     
     /**
-     * Inicializa o gerenciador Bluetooth e seus componentes.
+     * Initializes the Bluetooth manager and its components.
      */
     private void init() {
         LOGGER.info("Initializing BluetoothManager...");
@@ -99,18 +99,18 @@ public class BluetoothManager implements BluetoothEventListener {
     }
     
     /**
-     * Registra um listener para eventos Bluetooth.
+     * Registers a listener for Bluetooth events.
      * 
-     * @param listener O listener a ser registrado
+     * @param listener The listener to be registered
      */
     public void setEventListener(BluetoothEventListener listener) {
         this.externalEventListener = listener;
     }
     
     /**
-     * Define um valor mínimo de RSSI para filtrar dispositivos com sinal fraco.
+     * Sets a minimum RSSI value to filter out devices with weak signals.
      * 
-     * @param rssiValue O valor mínimo de RSSI a ser considerado
+     * @param rssiValue The minimum RSSI value to be considered
      */
     public void setMinimumRssi(int rssiValue) {
         if (deviceScanner != null) {
@@ -119,9 +119,9 @@ public class BluetoothManager implements BluetoothEventListener {
     }
     
     /**
-     * Inicia a descoberta de dispositivos BLE.
+     * Starts the discovery of BLE devices.
      * 
-     * @return true se a varredura foi iniciada, false caso contrário
+     * @return true if scanning was started, false otherwise
      */
     public boolean startDeviceDiscovery() {
         if (deviceScanner != null) {
@@ -131,7 +131,7 @@ public class BluetoothManager implements BluetoothEventListener {
     }
     
     /**
-     * Para a descoberta de dispositivos BLE.
+     * Stops the discovery of BLE devices.
      */
     public void stopDeviceDiscovery() {
         if (deviceScanner != null) {
@@ -140,10 +140,10 @@ public class BluetoothManager implements BluetoothEventListener {
     }
     
     /**
-     * Tenta conectar a um dispositivo específico pelo endereço MAC.
+     * Attempts to connect to a specific device by MAC address.
      * 
-     * @param deviceAddress Endereço MAC do dispositivo
-     * @return true se a tentativa de conexão foi iniciada, false caso contrário
+     * @param deviceAddress MAC address of the device
+     * @return true if the connection attempt was initiated, false otherwise
      */
     public boolean connectToDevice(String deviceAddress) {
         if (connectionHandler != null) {
@@ -153,12 +153,12 @@ public class BluetoothManager implements BluetoothEventListener {
     }
     
     /**
-     * Envia dados de temperatura para o periférico conectado.
+     * Sends temperature data to the connected peripheral.
      * 
-     * @param cpuTemp Temperatura da CPU
-     * @param gpuTemp Temperatura da GPU
-     * @param diskTemp Temperatura do disco
-     * @return true se os dados foram enviados, false caso contrário
+     * @param cpuTemp CPU temperature
+     * @param gpuTemp GPU temperature
+     * @param diskTemp Disk temperature
+     * @return true if the data was sent, false otherwise
      */
     public boolean sendTemperatureData(double cpuTemp, double gpuTemp, double diskTemp) {
         if (dataHandler != null) {
@@ -168,10 +168,10 @@ public class BluetoothManager implements BluetoothEventListener {
     }
     
     /**
-     * Envia um valor PWM para o periférico conectado.
+     * Sends a PWM value to the connected peripheral.
      * 
-     * @param pwmValue Valor PWM (ex: 0-100)
-     * @return true se o comando foi enviado, false caso contrário
+     * @param pwmValue PWM value (e.g., 0-100)
+     * @return true if the command was sent, false otherwise
      */
     public boolean sendPwmCommand(int pwmValue) {
         if (dataHandler != null) {
@@ -181,7 +181,7 @@ public class BluetoothManager implements BluetoothEventListener {
     }
     
     /**
-     * Fecha a conexão com o periférico atual.
+     * Closes the connection with the current peripheral.
      */
     public void closeConnection() {
         if (connectionHandler != null) {
@@ -190,34 +190,34 @@ public class BluetoothManager implements BluetoothEventListener {
     }
     
     /**
-     * Verifica se está conectado a um periférico.
+     * Checks if connected to a peripheral.
      * 
-     * @return true se conectado, false caso contrário
+     * @return true if connected, false otherwise
      */
     public boolean isConnected() {
         return connectionHandler != null && connectionHandler.isConnected();
     }
     
     /**
-     * Verifica se o Bluetooth foi inicializado corretamente.
+     * Checks if Bluetooth was correctly initialized.
      * 
-     * @return true se inicializado, false caso contrário
+     * @return true if initialized, false otherwise
      */
     public boolean isInitialized() {
         return centralManager != null;
     }
     
     /**
-     * Verifica se está em processo de varredura.
+     * Checks if scanning is in progress.
      * 
-     * @return true se está em varredura, false caso contrário
+     * @return true if scanning, false otherwise
      */
     public boolean isScanning() {
         return deviceScanner != null && deviceScanner.isScanning();
     }
     
     /**
-     * Desliga o serviço Bluetooth, parando varreduras e desconectando.
+     * Shuts down the Bluetooth service, stopping scans and disconnecting.
      */
     public void shutdown() {
         LOGGER.info("Shutting down BluetoothManager...");
@@ -230,7 +230,7 @@ public class BluetoothManager implements BluetoothEventListener {
         LOGGER.info("BluetoothManager shutdown complete.");
     }
     
-    // Implementação de BluetoothEventListener (bridge interno)
+    // BluetoothEventListener implementation (internal bridge)
     @Override
     public void onDeviceDiscovered(BluetoothPeripheral peripheral, String name, String address, int rssi) {
         if (externalEventListener != null) {

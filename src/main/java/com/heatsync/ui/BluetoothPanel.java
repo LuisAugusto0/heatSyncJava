@@ -76,7 +76,7 @@ public class BluetoothPanel implements BluetoothEventListener {
      */
     private void createDevicesPanel() {
         devicesPanel = new JPanel(new BorderLayout(5, 5));
-        devicesPanel.setBorder(BorderFactory.createTitledBorder("Dispositivos Descobertos"));
+        devicesPanel.setBorder(BorderFactory.createTitledBorder("Discovered Devices"));
         
         // Create the device list with scrolling
         deviceListModel = new DefaultListModel<>();
@@ -96,26 +96,26 @@ public class BluetoothPanel implements BluetoothEventListener {
      */
     private void createControlPanel() {
         controlPanel = new JPanel(new GridLayout(7, 1, 5, 5));
-        controlPanel.setBorder(BorderFactory.createTitledBorder("Controles"));
+        controlPanel.setBorder(BorderFactory.createTitledBorder("Controls"));
         
         // Connection status
-        connectionStatusLabel = new JLabel("Status: Desconectado");
+        connectionStatusLabel = new JLabel("Status: Disconnected");
         connectionStatusLabel.setForeground(Color.RED);
         
         // RSSI filter slider
         JPanel rssiPanel = new JPanel(new BorderLayout());
-        JLabel rssiLabel = new JLabel("Filtro RSSI: -75 dBm");
+        JLabel rssiLabel = new JLabel("RSSI Filter: -75 dBm");
         JSlider rssiSlider = new JSlider(JSlider.HORIZONTAL, -100, -30, -75);
         rssiSlider.setMajorTickSpacing(10);
         rssiSlider.setPaintTicks(true);
         rssiSlider.addChangeListener(e -> {
             int value = rssiSlider.getValue();
-            rssiLabel.setText("Filtro RSSI: " + value + " dBm");
+            rssiLabel.setText("RSSI Filter: " + value + " dBm");
             if (!rssiSlider.getValueIsAdjusting()) {
                 // Apply filter only when user stops dragging the slider
                 if (bluetoothService != null && bluetoothService.isInitialized()) {
                     bluetoothService.setMinimumRssi(value);
-                    logCallback.accept("Filtro RSSI ajustado para " + value + " dBm");
+                    logCallback.accept("RSSI filter adjusted to " + value + " dBm");
                 }
             }
         });
@@ -123,7 +123,7 @@ public class BluetoothPanel implements BluetoothEventListener {
         rssiPanel.add(rssiSlider, BorderLayout.CENTER);
         
         // Scan button
-        scanButton = new JButton("Escanear Dispositivos");
+        scanButton = new JButton("Scan for Devices");
         scanButton.setEnabled(bluetoothService.isInitialized());
         scanButton.addActionListener(new ActionListener() {
             @Override
@@ -132,8 +132,8 @@ public class BluetoothPanel implements BluetoothEventListener {
                     // Stop scanning
                     bluetoothService.stopDeviceDiscovery();
                     scanning = false;
-                    scanButton.setText("Escanear Dispositivos");
-                    logCallback.accept("Varredura BLE interrompida.");
+                    scanButton.setText("Scan for Devices");
+                    logCallback.accept("BLE scan stopped.");
                 } else {
                     // Clear previous devices
                     deviceListModel.clear();
@@ -143,18 +143,18 @@ public class BluetoothPanel implements BluetoothEventListener {
                     // Start scanning
                     if (bluetoothService.startDeviceDiscovery()) {
                         scanning = true;
-                        scanButton.setText("Parar Varredura");
-                        logCallback.accept("Iniciando varredura por dispositivos BLE...");
-                        logCallback.accept("Dispositivos encontrados aparecerão na lista à direita.");
+                        scanButton.setText("Stop Scanning");
+                        logCallback.accept("Starting scan for BLE devices...");
+                        logCallback.accept("Found devices will appear in the list on the right.");
                     } else {
-                        logCallback.accept("ERRO: Não foi possível iniciar a varredura BLE.");
+                        logCallback.accept("ERROR: Unable to start BLE scan.");
                     }
                 }
             }
         });
         
         // Connect button
-        connectButton = new JButton("Conectar ao Dispositivo Selecionado");
+        connectButton = new JButton("Connect to Selected Device");
         connectButton.setEnabled(false);
         connectButton.addActionListener(new ActionListener() {
             @Override
@@ -165,36 +165,36 @@ public class BluetoothPanel implements BluetoothEventListener {
                     BluetoothPeripheral peripheral = discoveredDevicesMap.get(selectedDevice);
                     
                     if (peripheral != null) {
-                        logCallback.accept("Tentando conectar a: " + selectedDevice);
+                        logCallback.accept("Attempting to connect to: " + selectedDevice);
                         bluetoothService.connectToDevice(peripheral.getAddress());
                     } else {
-                        logCallback.accept("ERRO: Não foi possível encontrar o dispositivo selecionado.");
+                        logCallback.accept("ERROR: Could not find the selected device.");
                     }
                 }
             }
         });
         
         // Disconnect button
-        disconnectButton = new JButton("Desconectar");
+        disconnectButton = new JButton("Disconnect");
         disconnectButton.setEnabled(false);
         disconnectButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                logCallback.accept("Desconectando do dispositivo...");
+                logCallback.accept("Disconnecting from device...");
                 bluetoothService.closeConnection();
             }
         });
         
         // Auto/Manual mode toggle
-        autoManualToggle = new JToggleButton("Modo: Automático");
+        autoManualToggle = new JToggleButton("Mode: Automatic");
         autoManualToggle.setSelected(true);
         autoManualToggle.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 autoMode = (e.getStateChange() == ItemEvent.SELECTED);
-                autoManualToggle.setText("Modo: " + (autoMode ? "Automático" : "Manual"));
+                autoManualToggle.setText("Mode: " + (autoMode ? "Automatic" : "Manual"));
                 fanSpeedSlider.setEnabled(!autoMode);
-                logCallback.accept("Modo alterado para " + (autoMode ? "automático" : "manual"));
+                logCallback.accept("Mode changed to " + (autoMode ? "automatic" : "manual"));
             }
         });
         
@@ -210,7 +210,7 @@ public class BluetoothPanel implements BluetoothEventListener {
             public void stateChanged(ChangeEvent e) {
                 if (!fanSpeedSlider.getValueIsAdjusting() && !autoMode && bluetoothService.isConnected()) {
                     int value = fanSpeedSlider.getValue();
-                    logCallback.accept("Configurando velocidade do ventilador para " + value + "%");
+                    logCallback.accept("Setting fan speed to " + value + "%");
                     bluetoothService.sendPwmCommand(value);
                 }
             }
@@ -233,10 +233,10 @@ public class BluetoothPanel implements BluetoothEventListener {
         bluetoothService.setBluetoothEventListener(this);
         
         if (bluetoothService.isInitialized()) {
-            logCallback.accept("Bluetooth inicializado com sucesso!");
+            logCallback.accept("Bluetooth initialized successfully!");
             scanButton.setEnabled(true);
         } else {
-            logCallback.accept("AVISO: BluetoothService não foi inicializado corretamente. Verifique se o hardware Bluetooth está disponível e se o BlueZ está instalado.");
+            logCallback.accept("WARNING: BluetoothService was not initialized correctly. Check if your Bluetooth hardware is available and BlueZ is installed.");
             scanButton.setEnabled(false);
         }
     }
@@ -248,14 +248,13 @@ public class BluetoothPanel implements BluetoothEventListener {
         
         // Check if device already exists in the visual list
         boolean deviceExists = false;
-        String deviceKey = address;
-        
         for (int i = 0; i < deviceListModel.size(); i++) {
             String item = deviceListModel.getElementAt(i);
-            // If item contains the address, update it
             if (item.contains(address)) {
+                // If item contains the address, update it
                 deviceListModel.setElementAt(deviceInfo, i);
                 deviceExists = true;
+                
                 // Update the map too
                 discoveredDevicesMap.put(deviceInfo, peripheral);
                 break;
@@ -266,58 +265,51 @@ public class BluetoothPanel implements BluetoothEventListener {
         if (!deviceExists) {
             deviceListModel.addElement(deviceInfo);
             discoveredDevicesMap.put(deviceInfo, peripheral);
-            
-            // Enable connect button if there's at least one device
-            if (!connectButton.isEnabled() && deviceListModel.size() > 0) {
-                connectButton.setEnabled(true);
-            }
         }
         
-        logCallback.accept("Dispositivo encontrado: " + deviceInfo);
+        // Enable connect button if there's at least one device
+        if (deviceListModel.size() > 0 && !connectButton.isEnabled()) {
+            connectButton.setEnabled(true);
+        }
     }
 
     @Override
     public void onDeviceConnected(BluetoothPeripheral peripheral) {
         SwingUtilities.invokeLater(() -> {
-            String name = peripheral.getName();
-            if (name == null || name.isEmpty()) {
-                name = peripheral.getAddress();
-            }
-            
-            connectionStatusLabel.setText("Status: Conectado a " + name);
-            connectionStatusLabel.setForeground(Color.GREEN);
-            logCallback.accept("Conectado ao dispositivo: " + name + " (" + peripheral.getAddress() + ")");
+            logCallback.accept("Connected to " + peripheral.getName() + " (" + peripheral.getAddress() + ")");
             
             // Update interface to reflect connected state
-            connectButton.setEnabled(false);
+            connectionStatusLabel.setText("Status: Connected");
+            connectionStatusLabel.setForeground(Color.GREEN);
             disconnectButton.setEnabled(true);
             scanButton.setEnabled(false);
+            connectButton.setEnabled(false);
         });
     }
 
     @Override
     public void onDeviceDisconnected(BluetoothPeripheral peripheral, BluetoothCommandStatus status) {
         SwingUtilities.invokeLater(() -> {
-            connectionStatusLabel.setText("Status: Desconectado");
-            connectionStatusLabel.setForeground(Color.RED);
-            logCallback.accept("Desconectado do dispositivo: " + peripheral.getName() + " (" + peripheral.getAddress() + ") Status: " + status);
+            logCallback.accept("Disconnected from " + peripheral.getName() + " (" + peripheral.getAddress() + ")");
             
             // Update interface to reflect disconnected state
-            connectButton.setEnabled(deviceListModel.size() > 0);
+            connectionStatusLabel.setText("Status: Disconnected");
+            connectionStatusLabel.setForeground(Color.RED);
             disconnectButton.setEnabled(false);
             scanButton.setEnabled(true);
+            connectButton.setEnabled(!deviceList.isSelectionEmpty());
         });
     }
 
     @Override
     public void onScanFailed(int errorCode) {
         SwingUtilities.invokeLater(() -> {
+            logCallback.accept("ERROR: Scan failed with error code " + errorCode);
             scanning = false;
-            scanButton.setText("Escanear Dispositivos");
-            logCallback.accept("Falha na varredura BLE. Código de erro: " + errorCode);
+            scanButton.setText("Scan for Devices");
         });
     }
-    
+
     /**
      * Gets the devices panel.
      * 
@@ -326,7 +318,7 @@ public class BluetoothPanel implements BluetoothEventListener {
     public JPanel getDevicesPanel() {
         return devicesPanel;
     }
-    
+
     /**
      * Gets the control panel.
      * 
@@ -335,20 +327,20 @@ public class BluetoothPanel implements BluetoothEventListener {
     public JPanel getControlPanel() {
         return controlPanel;
     }
-    
+
     /**
-     * Gets whether the UI is in auto mode.
+     * Gets the auto mode status.
      * 
      * @return True if in auto mode, false if in manual mode
      */
     public boolean isAutoMode() {
         return autoMode;
     }
-    
+
     /**
-     * Gets the manual fan speed value.
+     * Gets the fan speed value from slider (0-100).
      * 
-     * @return The fan speed value from slider (0-100)
+     * @return The fan speed value
      */
     public int getFanSpeed() {
         return fanSpeedSlider.getValue();

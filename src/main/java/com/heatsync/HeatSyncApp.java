@@ -68,7 +68,7 @@ public class HeatSyncApp {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            LOGGER.warning("Não foi possível definir o Look and Feel do sistema.");
+            LOGGER.warning("Could not set the system Look and Feel.");
         }
 
         SwingUtilities.invokeLater(() -> {

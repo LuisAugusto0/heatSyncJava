@@ -4,38 +4,38 @@ import com.welie.blessed.BluetoothCommandStatus;
 import com.welie.blessed.BluetoothPeripheral;
 
 /**
- * Interface para notificar a UI sobre eventos Bluetooth.
+ * Interface to notify the UI about Bluetooth events.
  */
 public interface BluetoothEventListener {
     /**
-     * Chamado quando um dispositivo Bluetooth é descoberto.
+     * Called when a Bluetooth device is discovered.
      * 
-     * @param peripheral O dispositivo periférico
-     * @param name O nome do dispositivo
-     * @param address O endereço MAC do dispositivo
-     * @param rssi A força do sinal (RSSI)
+     * @param peripheral The peripheral device
+     * @param name The device name
+     * @param address The MAC address of the device
+     * @param rssi The signal strength (RSSI)
      */
     void onDeviceDiscovered(BluetoothPeripheral peripheral, String name, String address, int rssi);
     
     /**
-     * Chamado quando um dispositivo é conectado com sucesso.
+     * Called when a device is successfully connected.
      * 
-     * @param peripheral O dispositivo conectado
+     * @param peripheral The connected device
      */
     void onDeviceConnected(BluetoothPeripheral peripheral);
     
     /**
-     * Chamado quando um dispositivo é desconectado.
+     * Called when a device is disconnected.
      * 
-     * @param peripheral O dispositivo desconectado
-     * @param status O status da desconexão
+     * @param peripheral The disconnected device
+     * @param status The disconnection status
      */
     void onDeviceDisconnected(BluetoothPeripheral peripheral, BluetoothCommandStatus status);
     
     /**
-     * Chamado quando ocorre uma falha na varredura.
+     * Called when a scan failure occurs.
      * 
-     * @param errorCode O código de erro
+     * @param errorCode The error code
      */
     void onScanFailed(int errorCode);
 } 

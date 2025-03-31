@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * Responsável pelo gerenciamento de conexões com dispositivos Bluetooth.
+ * Responsible for managing connections with Bluetooth devices.
  */
 public class BluetoothConnectionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BluetoothConnectionHandler.class);
@@ -24,19 +24,19 @@ public class BluetoothConnectionHandler {
     private boolean connected = false;
     
     /**
-     * Callback para lidar com eventos de um Periférico Bluetooth específico.
+     * Callback to handle events from a specific Bluetooth peripheral.
      */
     private final BluetoothPeripheralCallback peripheralCallback = new BluetoothPeripheralCallback() {
         @Override
         public void onServicesDiscovered(BluetoothPeripheral peripheral, List<BluetoothGattService> services) {
             LOGGER.info("Services discovered for {}", peripheral.getAddress());
             
-            // Verificar se encontramos o nome do dispositivo após descoberta de serviços
+            // Check if we found the device name after discovering services
             String name = peripheral.getName();
             if (name != null && !name.isEmpty()) {
                 LOGGER.info("Device name after service discovery: {}", name);
                 
-                // Notificar a UI sobre o nome atualizado
+                // Notify UI about the updated name
                 if (eventListener != null) {
                     eventListener.onDeviceDiscovered(peripheral, name, peripheral.getAddress(), 0);
                 }
@@ -75,10 +75,10 @@ public class BluetoothConnectionHandler {
     };
     
     /**
-     * Cria um novo gerenciador de conexões Bluetooth.
+     * Creates a new Bluetooth connection handler.
      * 
-     * @param centralManager O gerenciador central Bluetooth
-     * @param eventListener O listener para eventos Bluetooth
+     * @param centralManager The Bluetooth central manager
+     * @param eventListener The listener for Bluetooth events
      */
     public BluetoothConnectionHandler(BluetoothCentralManager centralManager, BluetoothEventListener eventListener) {
         this.centralManager = centralManager;
@@ -86,10 +86,10 @@ public class BluetoothConnectionHandler {
     }
     
     /**
-     * Tenta conectar a um dispositivo específico pelo endereço MAC.
+     * Attempts to connect to a specific device by MAC address.
      * 
-     * @param deviceAddress Endereço MAC do dispositivo
-     * @return true se a tentativa de conexão foi iniciada, false caso contrário
+     * @param deviceAddress MAC address of the device
+     * @return true if the connection attempt was initiated, false otherwise
      */
     public boolean connectToDevice(String deviceAddress) {
         if (centralManager == null) {
@@ -97,24 +97,24 @@ public class BluetoothConnectionHandler {
             return false;
         }
         
-        // Tenta obter o periférico pelo endereço (pode ter sido descoberto anteriormente)
+        // Try to get the peripheral by address (may have been discovered previously)
         BluetoothPeripheral peripheral = centralManager.getPeripheral(deviceAddress);
         if (peripheral != null) {
             LOGGER.info("Attempting to connect to: {} using stored peripheral object", deviceAddress);
             // Pass the peripheral-specific callback
             centralManager.connectPeripheral(peripheral, peripheralCallback);
-            return true; // Tentativa iniciada (sucesso/falha será via callback)
+            return true; // Attempt initiated (success/failure will be via callback)
         } else {
-            // Se não conhecido, talvez precise escanear primeiro ou conectar diretamente (se suportado)
+            // If not known, may need to scan first or connect directly (if supported)
             LOGGER.error("Peripheral with address {} not found in central manager's list. Ensure device was discovered.", deviceAddress);
             return false;
         }
     }
     
     /**
-     * Trata o evento de conexão com um dispositivo.
+     * Handles the event of connection with a device.
      * 
-     * @param peripheral O dispositivo conectado
+     * @param peripheral The connected device
      */
     public void handleDeviceConnected(BluetoothPeripheral peripheral) {
         connected = true;
@@ -122,10 +122,10 @@ public class BluetoothConnectionHandler {
     }
     
     /**
-     * Trata o evento de desconexão com um dispositivo.
+     * Handles the event of disconnection from a device.
      * 
-     * @param peripheral O dispositivo desconectado
-     * @param status O status da desconexão
+     * @param peripheral The disconnected device
+     * @param status The status of the disconnection
      */
     public void handleDeviceDisconnected(BluetoothPeripheral peripheral, BluetoothCommandStatus status) {
         connected = false;
@@ -133,10 +133,10 @@ public class BluetoothConnectionHandler {
     }
     
     /**
-     * Trata o evento de falha na conexão.
+     * Handles the event of connection failure.
      * 
-     * @param peripheral O dispositivo que falhou ao conectar
-     * @param status O status da falha
+     * @param peripheral The device that failed to connect
+     * @param status The status of the failure
      */
     public void handleConnectionFailed(BluetoothPeripheral peripheral, BluetoothCommandStatus status) {
         connected = false;
@@ -144,30 +144,30 @@ public class BluetoothConnectionHandler {
     }
     
     /**
-     * Fecha a conexão com o periférico atual.
+     * Closes the connection with the current peripheral.
      */
     public void closeConnection() {
         if (connectedPeripheral != null && centralManager != null) {
             LOGGER.info("Closing connection to peripheral: {}", connectedPeripheral.getAddress());
-            centralManager.cancelConnection(connectedPeripheral); // Solicita desconexão
+            centralManager.cancelConnection(connectedPeripheral); // Request disconnection
         } else {
              LOGGER.info("No active connection to close.");
         }
     }
     
     /**
-     * Verifica se está conectado a um periférico.
+     * Checks if connected to a peripheral.
      * 
-     * @return true se conectado, false caso contrário
+     * @return true if connected, false otherwise
      */
     public boolean isConnected() {
         return connected && connectedPeripheral != null;
     }
     
     /**
-     * Obtém o periférico conectado atualmente.
+     * Gets the currently connected peripheral.
      * 
-     * @return O periférico conectado ou null se não houver conexão
+     * @return The connected peripheral or null if there is no connection
      */
     public BluetoothPeripheral getConnectedPeripheral() {
         return connectedPeripheral;

@@ -13,18 +13,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Serviço responsável por monitorar as temperaturas dos componentes do sistema.
- * Utiliza a biblioteca JSensors para obter as informações dos sensores.
+ * Service responsible for monitoring system component temperatures.
+ * Uses the JSensors library to obtain sensor information.
  */
 public class TemperatureMonitor {
     private static final Logger LOGGER = Logger.getLogger(TemperatureMonitor.class.getName());
     
-    // Valores de limite para normalização de temperatura
+    // Temperature threshold values for normalization
     private static final double MILLIGRADE_THRESHOLD = 1000.0;
     private static final double DECIGRADE_THRESHOLD = 200.0;
     private static final double FAHRENHEIT_THRESHOLD = 100.0;
     
-    // Fatores de conversão
+    // Conversion factors
     private static final double MILLIGRADE_FACTOR = 100.0;
     private static final double DECIGRADE_FACTOR = 10.0;
     
@@ -33,18 +33,18 @@ public class TemperatureMonitor {
     private List<Disk> disks;
 
     /**
-     * Construtor padrão, inicializa os componentes e seus sensores.
+     * Default constructor, initializes components and their sensors.
      */
     public TemperatureMonitor() {
         initializeComponents();
     }
 
     /**
-     * Inicializa e atualiza os componentes e seus sensores.
-     * Habilita o modo de depuração no JSensors e registra informações detalhadas.
+     * Initializes and updates components and their sensors.
+     * Enables debug mode in JSensors and logs detailed information.
      */
     private void initializeComponents() {
-        // Habilita o modo de depuração no JSensors
+        // Enable debug mode in JSensors
         Map<String, String> config = new HashMap<>();
         config.put("debugMode", "true");
         
@@ -52,12 +52,12 @@ public class TemperatureMonitor {
         gpus = JSensors.get.config(config).components().gpus;
         disks = JSensors.get.config(config).components().disks;
         
-        // Registra informações detalhadas dos sensores
+        // Log detailed sensor information
         logSensorDetails();
     }
     
     /**
-     * Registra informações detalhadas sobre todos os sensores encontrados.
+     * Logs detailed information about all sensors found.
      */
     private void logSensorDetails() {
         LOGGER.info("===== DETAILED SENSOR INFORMATION =====");
@@ -70,10 +70,10 @@ public class TemperatureMonitor {
     }
     
     /**
-     * Registra informações detalhadas para uma categoria específica de componentes.
+     * Logs detailed information for a specific category of components.
      * 
-     * @param componentType O tipo de componente (CPU, GPU, DISK)
-     * @param components A lista de componentes a ser registrada
+     * @param componentType The component type (CPU, GPU, DISK)
+     * @param components The list of components to log
      */
     private <T> void logComponentDetails(String componentType, List<T> components) {
         if (components == null || components.isEmpty()) {
@@ -112,9 +112,9 @@ public class TemperatureMonitor {
     }
 
     /**
-     * Obtém a temperatura média da CPU.
+     * Gets the average CPU temperature.
      * 
-     * @return A temperatura média da CPU em graus Celsius
+     * @return The average CPU temperature in degrees Celsius
      */
     public double getCpuTemperature() {
         return cpus.stream()
@@ -126,9 +126,9 @@ public class TemperatureMonitor {
     }
 
     /**
-     * Obtém a temperatura média da GPU.
+     * Gets the average GPU temperature.
      * 
-     * @return A temperatura média da GPU em graus Celsius
+     * @return The average GPU temperature in degrees Celsius
      */
     public double getGpuTemperature() {
         return gpus.stream()
@@ -140,9 +140,9 @@ public class TemperatureMonitor {
     }
 
     /**
-     * Obtém a temperatura média do disco.
+     * Gets the average disk temperature.
      * 
-     * @return A temperatura média do disco em graus Celsius
+     * @return The average disk temperature in degrees Celsius
      */
     public double getDiskTemperature() {
         return disks.stream()
@@ -154,37 +154,37 @@ public class TemperatureMonitor {
     }
 
     /**
-     * Normaliza as temperaturas para a escala Celsius adequada com base no valor reportado.
+     * Normalizes temperatures to the appropriate Celsius scale based on the reported value.
      * 
-     * @param value O valor bruto da temperatura
-     * @return O valor normalizado em Celsius
+     * @param value The raw temperature value
+     * @return The normalized value in Celsius
      */
     private double normalizeTemperature(double value) {
-        LOGGER.log(Level.FINE, "Normalizando temperatura: {0}", value);
+        LOGGER.log(Level.FINE, "Normalizing temperature: {0}", value);
         
         if (value > MILLIGRADE_THRESHOLD) {
-            // Se o valor estiver na casa de milhares, provavelmente é miligraus (mC)
-            // Exemplo: 3385 mC = 33.85 C
+            // If the value is in thousands, it's probably milligrade (mC)
+            // Example: 3385 mC = 33.85 C
             return value / MILLIGRADE_FACTOR;
         } else if (value > DECIGRADE_THRESHOLD) {
-            // Se o valor estiver entre 200 e 1000, provavelmente é decigraus (dC)
-            // Exemplo: 538 dC = 53.8 C
+            // If the value is between 200 and 1000, it's probably decigrade (dC)
+            // Example: 538 dC = 53.8 C
             return value / DECIGRADE_FACTOR;
         } else if (value > FAHRENHEIT_THRESHOLD) {
-            // Alguns sensores podem reportar em Fahrenheit
-            // Converter para Celsius: (F - 32) * 5/9
+            // Some sensors may report in Fahrenheit
+            // Convert to Celsius: (F - 32) * 5/9
             return (value - 32.0) * 5.0 / 9.0;
         } else {
-            // Valores abaixo de 100 provavelmente já estão em Celsius
+            // Values below 100 are probably already in Celsius
             return value;
         }
     }
 
     /**
-     * Atualiza as informações de temperatura de todos os componentes.
+     * Updates temperature information for all components.
      */
     public void updateTemperatures() {
-        // Atualiza os dados dos componentes
+        // Update component data
         initializeComponents();
     }
 } 

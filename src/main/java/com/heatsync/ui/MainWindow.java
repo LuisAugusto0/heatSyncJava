@@ -79,7 +79,7 @@ public class MainWindow {
         mainFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                logMessage("Encerrando aplicação...");
+                logMessage("Shutting down application...");
                 
                 if (bluetoothService != null) {
                     bluetoothService.shutdown();
@@ -93,8 +93,8 @@ public class MainWindow {
      */
     public void show() {
         SwingUtilities.invokeLater(() -> {
-            logMessage("HeatSync iniciado (Monitor de Temperatura Ativo)");
-            logMessage("Verifique o status do Bluetooth e inicie a varredura para encontrar dispositivos.");
+            logMessage("HeatSync started (Temperature Monitor Active)");
+            logMessage("Check Bluetooth status and start scanning to find devices.");
             mainFrame.setVisible(true);
         });
     }

@@ -1,0 +1,5 @@
+measurement:
+  method: est
+  est:
+    cpuMinWatts: 10.0
+    cpuMaxWatts: 65.0

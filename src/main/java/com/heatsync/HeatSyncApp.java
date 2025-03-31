@@ -2,6 +2,7 @@ package com.heatsync;
 
 import com.heatsync.service.BluetoothService;
 import com.heatsync.service.BluetoothService.BluetoothEventListener;
+import com.heatsync.service.PowerMonitor;
 import com.heatsync.service.TemperatureMonitor;
 import com.welie.blessed.*;
 import javax.swing.*;
@@ -31,6 +32,9 @@ public class HeatSyncApp implements BluetoothEventListener {
     private JLabel cpuTempLabel;
     private JLabel gpuTempLabel;
     private JLabel diskTempLabel;
+    private JLabel cpuPowerLabel;     // Novo label para consumo de CPU
+    private JLabel gpuPowerLabel;     // Novo label para consumo de GPU
+    private JLabel totalPowerLabel;   // Novo label para consumo total
     private JLabel connectionStatusLabel;
     private JTextArea logTextArea;
     private JButton connectButton;
@@ -47,6 +51,7 @@ public class HeatSyncApp implements BluetoothEventListener {
     private Map<String, BluetoothPeripheral> discoveredDevicesMap = new HashMap<>();
     
     private TemperatureMonitor temperatureMonitor;
+    private PowerMonitor powerMonitor;        // Nova instância para monitor de energia
     private BluetoothService bluetoothService;
     private Timer updateTimer;
     private boolean autoMode = true;
@@ -54,6 +59,7 @@ public class HeatSyncApp implements BluetoothEventListener {
 
     public HeatSyncApp() {
         temperatureMonitor = new TemperatureMonitor();
+        powerMonitor = new PowerMonitor(temperatureMonitor);  // Inicializa o monitor de energia
         bluetoothService = new BluetoothService();
         initializeGUI();
         startTemperatureUpdates();
@@ -163,16 +169,22 @@ public class HeatSyncApp implements BluetoothEventListener {
         mainFrame.setLayout(new BorderLayout(10, 10));
 
         // Painel de temperaturas
-        JPanel tempPanel = new JPanel(new GridLayout(3, 1, 5, 5));
-        tempPanel.setBorder(BorderFactory.createTitledBorder("Temperaturas"));
+        JPanel tempPanel = new JPanel(new GridLayout(6, 1, 5, 5));  // Alterado para 6 linhas para incluir os novos labels
+        tempPanel.setBorder(BorderFactory.createTitledBorder("Temperaturas e Consumo"));
         
         cpuTempLabel = new JLabel("CPU Temperature: --°C");
         gpuTempLabel = new JLabel("GPU Temperature: --°C");
         diskTempLabel = new JLabel("Disk Temperature: --°C");
+        cpuPowerLabel = new JLabel("CPU Power: --W");         // Novo label para consumo de CPU
+        gpuPowerLabel = new JLabel("GPU Power: --W");         // Novo label para consumo de GPU
+        totalPowerLabel = new JLabel("Total Power: --W");     // Novo label para consumo total
         
         tempPanel.add(cpuTempLabel);
         tempPanel.add(gpuTempLabel);
         tempPanel.add(diskTempLabel);
+        tempPanel.add(cpuPowerLabel);
+        tempPanel.add(gpuPowerLabel);
+        tempPanel.add(totalPowerLabel);
         
         // Painel de dispositivos descobertos (NOVO)
         JPanel devicesPanel = new JPanel(new BorderLayout(5, 5));
@@ -361,6 +373,7 @@ public class HeatSyncApp implements BluetoothEventListener {
             @Override
             public void run() {
                 updateTemperatures();
+                updatePowerConsumption();  // Nova chamada para atualizar consumo de energia
             }
         }, 0, 2000); // Update every 2 seconds
     }
@@ -376,6 +389,21 @@ public class HeatSyncApp implements BluetoothEventListener {
             cpuTempLabel.setText(String.format("CPU Temperature: %.2f°C", cpuTemp));
             gpuTempLabel.setText(String.format("GPU Temperature: %.2f°C", gpuTemp));
             diskTempLabel.setText(String.format("Disk Temperature: %.2f°C", diskTemp));
+        });
+    }
+    
+    // Novo método para atualizar o consumo de energia
+    private void updatePowerConsumption() {
+        powerMonitor.updatePowerConsumption();
+        
+        double cpuPower = powerMonitor.getCpuPowerWatts();
+        double gpuPower = powerMonitor.getGpuPowerWatts();
+        double totalPower = powerMonitor.getTotalPowerWatts();
+        
+        SwingUtilities.invokeLater(() -> {
+            cpuPowerLabel.setText(String.format("CPU Power: %.2fW", cpuPower));
+            gpuPowerLabel.setText(String.format("GPU Power: %.2fW", gpuPower));
+            totalPowerLabel.setText(String.format("Total Power: %.2fW", totalPower));
         });
     }
     

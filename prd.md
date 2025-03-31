@@ -18,7 +18,7 @@ O sistema oferece uma **interface gráfica local (GUI)** para o usuário monitor
   - [X] Temperatura da CPU
   - [X] Temperatura da GPU
   - [X] Temperatura do disco
-  - [ ] (Opcional) Leitura de Watts da CPU/GPU (se suportado)
+  - [X] (Opcional) Leitura de Watts da CPU/GPU (se suportado)
 - [X] Criar serviço de coleta periódica (ex: `Timer` a cada 2s)
 - [ ] Estabelecer conexão serial com o dispositivo via Bluetooth
 - [ ] Enviar dados de temperatura pela conexão serial

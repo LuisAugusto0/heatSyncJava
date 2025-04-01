@@ -64,6 +64,7 @@ Esta seção é para usuários que receberam o arquivo `.jar` executável.
     ```
     *(Substitua `heatSyncJava-1.0-SNAPSHOT.jar` pelo nome exato do arquivo JAR)*
 
+*Nota: Para o windows, confirme que o terminal foi aberto como adiministrador, caso contrário o Jsensors não fará a leitura correta das temperaturas.*
 ## Desenvolvimento e Compilação
 
 Esta seção é para desenvolvedores que desejam compilar o código fonte.
@@ -92,6 +93,13 @@ Esta seção é para desenvolvedores que desejam compilar o código fonte.
     mvn exec:java -Dexec.mainClass="com.heatsync.HeatSyncApp"
     ```
     *Nota: Certifique-se que as dependências de sistema (Bluetooth) estão configuradas conforme a seção "Requisitos para Execução".*
+
+    Ou caso utilizando o PowerShell utilize as seguintes variação do comando para abrir como administrador:
+    ```bash
+    Start-Process cmd -Verb RunAs -ArgumentList "/k cd /d $PWD && mvn exec:java -Dexec.mainClass=com.heatsync.HeatSyncApp"
+    ```
+
+    *Bug observado no windows: ao abir através do powershell com RunAs para abrir um cmd no modo adiministrator a temperatura da cpu não é lida, mas se executado com um cmd aberto manualmente e executado java -jar (nome do arquivo) ele funciona normalmente.*
 
 5.  **Criando o JAR Executável (Fat JAR):**
     Para criar o arquivo `.jar` único e distribuível (que inclui todas as dependências), use o comando `package`. O `maven-shade-plugin` configurado no `pom.xml` cuidará de empacotar tudo.

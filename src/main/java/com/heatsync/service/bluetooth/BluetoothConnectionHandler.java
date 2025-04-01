@@ -1,15 +1,15 @@
 package com.heatsync.service.bluetooth;
 
-import com.welie.blessed.BluetoothCentralManager;
-import com.welie.blessed.BluetoothCommandStatus;
-import com.welie.blessed.BluetoothGattCharacteristic;
-import com.welie.blessed.BluetoothGattService;
-import com.welie.blessed.BluetoothPeripheral;
-import com.welie.blessed.BluetoothPeripheralCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import javax.bluetooth.RemoteDevice;
+import javax.microedition.io.StreamConnection;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Responsible for managing connections with Bluetooth devices.
@@ -17,71 +17,28 @@ import java.util.List;
 public class BluetoothConnectionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BluetoothConnectionHandler.class);
     
-    private final BluetoothCentralManager centralManager;
+    private final BluetoothManager bluetoothManager;
     private final BluetoothEventListener eventListener;
     
-    private BluetoothPeripheral connectedPeripheral = null;
+    private RemoteDevice connectedDevice = null;
+    private StreamConnection streamConnection = null;
+    private InputStream inputStream = null;
+    private OutputStream outputStream = null;
     private boolean connected = false;
     
-    /**
-     * Callback to handle events from a specific Bluetooth peripheral.
-     */
-    private final BluetoothPeripheralCallback peripheralCallback = new BluetoothPeripheralCallback() {
-        @Override
-        public void onServicesDiscovered(BluetoothPeripheral peripheral, List<BluetoothGattService> services) {
-            LOGGER.info("Services discovered for {}", peripheral.getAddress());
-            
-            // Check if we found the device name after discovering services
-            String name = peripheral.getName();
-            if (name != null && !name.isEmpty()) {
-                LOGGER.info("Device name after service discovery: {}", name);
-                
-                // Notify UI about the updated name
-                if (eventListener != null) {
-                    eventListener.onDeviceDiscovered(peripheral, name, peripheral.getAddress(), 0);
-                }
-            }
-        }
-
-        @Override
-        public void onNotificationStateUpdate(BluetoothPeripheral peripheral, BluetoothGattCharacteristic characteristic, BluetoothCommandStatus status) {
-            LOGGER.info("Notification state updated for characteristic {} on {}, status: {}", 
-                characteristic.getUuid(), peripheral.getAddress(), status);
-        }
-
-        @Override
-        public void onCharacteristicUpdate(BluetoothPeripheral peripheral, byte[] value, BluetoothGattCharacteristic characteristic, BluetoothCommandStatus status) {
-            LOGGER.info("Characteristic {} updated for {}: {} (status={})", characteristic.getUuid(), peripheral.getAddress(), bytesToHex(value), status);
-            // Handle incoming data (notifications/indications)
-        }
-
-        @Override
-        public void onCharacteristicWrite(BluetoothPeripheral peripheral, byte[] value, BluetoothGattCharacteristic characteristic, BluetoothCommandStatus status) {
-            if (status == BluetoothCommandStatus.COMMAND_SUCCESS) {
-                LOGGER.info("Successfully wrote value {} to characteristic {} for {}", bytesToHex(value), characteristic.getUuid(), peripheral.getAddress());
-            } else {
-                 LOGGER.error("Failed to write characteristic {} for {}, status: {}", characteristic.getUuid(), peripheral.getAddress(), status);
-            }
-        }
-        
-        // Helper to convert bytes to hex string for logging
-        private String bytesToHex(byte[] bytes) {
-            StringBuilder sb = new StringBuilder();
-            for (byte b : bytes) {
-                sb.append(String.format("%02X ", b));
-            }
-            return sb.toString().trim();
-        }
-    };
+    // Executor for async operations
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private Thread readThread;
+    private volatile boolean keepReading = false;
     
     /**
      * Creates a new Bluetooth connection handler.
      * 
-     * @param centralManager The Bluetooth central manager
+     * @param bluetoothManager The Bluetooth manager
      * @param eventListener The listener for Bluetooth events
      */
-    public BluetoothConnectionHandler(BluetoothCentralManager centralManager, BluetoothEventListener eventListener) {
-        this.centralManager = centralManager;
+    public BluetoothConnectionHandler(BluetoothManager bluetoothManager, BluetoothEventListener eventListener) {
+        this.bluetoothManager = bluetoothManager;
         this.eventListener = eventListener;
     }
     
@@ -92,66 +49,58 @@ public class BluetoothConnectionHandler {
      * @return true if the connection attempt was initiated, false otherwise
      */
     public boolean connectToDevice(String deviceAddress) {
-        if (centralManager == null) {
-            LOGGER.error("Cannot connect, BluetoothCentralManager not initialized.");
+        if (bluetoothManager == null) {
+            LOGGER.error("Cannot connect, BluetoothManager not initialized.");
             return false;
         }
         
-        // Try to get the peripheral by address (may have been discovered previously)
-        BluetoothPeripheral peripheral = centralManager.getPeripheral(deviceAddress);
-        if (peripheral != null) {
-            LOGGER.info("Attempting to connect to: {} using stored peripheral object", deviceAddress);
-            // Pass the peripheral-specific callback
-            centralManager.connectPeripheral(peripheral, peripheralCallback);
-            return true; // Attempt initiated (success/failure will be via callback)
-        } else {
-            // If not known, may need to scan first or connect directly (if supported)
-            LOGGER.error("Peripheral with address {} not found in central manager's list. Ensure device was discovered.", deviceAddress);
-            return false;
-        }
+        return bluetoothManager.connectToDevice(deviceAddress);
     }
     
     /**
      * Handles the event of connection with a device.
      * 
-     * @param peripheral The connected device
+     * @param device The connected device
      */
-    public void handleDeviceConnected(BluetoothPeripheral peripheral) {
+    public void handleDeviceConnected(RemoteDevice device) {
         connected = true;
-        connectedPeripheral = peripheral;
+        connectedDevice = device;
+        
+        LOGGER.info("Successfully connected to device: {}", device.getBluetoothAddress());
+        
+        if (eventListener != null) {
+            eventListener.onDeviceConnected(device);
+        }
     }
     
     /**
      * Handles the event of disconnection from a device.
      * 
-     * @param peripheral The disconnected device
+     * @param device The disconnected device
      * @param status The status of the disconnection
      */
-    public void handleDeviceDisconnected(BluetoothPeripheral peripheral, BluetoothCommandStatus status) {
+    public void handleDeviceDisconnected(RemoteDevice device, int status) {
         connected = false;
-        connectedPeripheral = null;
-    }
-    
-    /**
-     * Handles the event of connection failure.
-     * 
-     * @param peripheral The device that failed to connect
-     * @param status The status of the failure
-     */
-    public void handleConnectionFailed(BluetoothPeripheral peripheral, BluetoothCommandStatus status) {
-        connected = false;
-        connectedPeripheral = null;
+        connectedDevice = null;
+        
+        LOGGER.info("Disconnected from device: {} (status: {})", device.getBluetoothAddress(), status);
+        
+        if (eventListener != null) {
+            eventListener.onDeviceDisconnected(device, status);
+        }
     }
     
     /**
      * Closes the connection with the current peripheral.
      */
     public void closeConnection() {
-        if (connectedPeripheral != null && centralManager != null) {
-            LOGGER.info("Closing connection to peripheral: {}", connectedPeripheral.getAddress());
-            centralManager.cancelConnection(connectedPeripheral); // Request disconnection
+        if (connected && bluetoothManager != null) {
+            LOGGER.info("Closing connection to device...");
+            bluetoothManager.closeConnection();
+            connected = false;
+            connectedDevice = null;
         } else {
-             LOGGER.info("No active connection to close.");
+            LOGGER.info("No active connection to close.");
         }
     }
     
@@ -161,7 +110,7 @@ public class BluetoothConnectionHandler {
      * @return true if connected, false otherwise
      */
     public boolean isConnected() {
-        return connected && connectedPeripheral != null;
+        return connected && connectedDevice != null;
     }
     
     /**
@@ -169,7 +118,36 @@ public class BluetoothConnectionHandler {
      * 
      * @return The connected peripheral or null if there is no connection
      */
-    public BluetoothPeripheral getConnectedPeripheral() {
-        return connectedPeripheral;
+    public RemoteDevice getConnectedDevice() {
+        return connectedDevice;
+    }
+    
+    /**
+     * Sends data to the connected device.
+     * 
+     * @param data The data to send
+     * @return true if sending was successful, false otherwise
+     */
+    public boolean sendData(byte[] data) {
+        if (!connected || bluetoothManager == null) {
+            LOGGER.error("Cannot send data, not connected to any device.");
+            return false;
+        }
+        
+        try {
+            // Use the BluetoothManager to send the data
+            OutputStream output = bluetoothManager.getOutputStream();
+            if (output != null) {
+                output.write(data);
+                output.flush();
+                return true;
+            } else {
+                LOGGER.error("Output stream is null, cannot send data.");
+                return false;
+            }
+        } catch (IOException e) {
+            LOGGER.error("Error sending data to device", e);
+            return false;
+        }
     }
 } 

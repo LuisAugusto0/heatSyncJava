@@ -53,25 +53,18 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Adicionado: Blessed-Bluez para BLE no Linux -->
-        <dependency>
-            <groupId>com.github.weliem.blessed-bluez</groupId>
-            <artifactId>blessed</artifactId>
-            <version>0.64</version>
-        </dependency>
-
-        <!-- Adicionado: Transporte dbus-java necessário para Blessed-Bluez (compatível com Java 11+) -->
-        <dependency>
-            <groupId>com.github.hypfvieh</groupId>
-            <artifactId>dbus-java-transport-native-unixsocket</artifactId>
-            <version>4.3.2</version>
-        </dependency>
-
-        <!-- Adicionado: Implementação de Logging (SLF4J) usada por Blessed-Bluez -->
+        <!-- Logging implementation - keep it for other components that might need it -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.3.14</version>
+        </dependency>
+        
+        <!-- BlueCove core library for Bluetooth SPP support (works on Windows) -->
+        <dependency>
+            <groupId>net.sf.bluecove</groupId>
+            <artifactId>bluecove</artifactId>
+            <version>2.1.0</version>
         </dependency>
         
         <!-- Adicionado: JPowerMonitor para leitura de consumo de energia -->
@@ -81,6 +74,28 @@
             <version>1.2.1</version>
         </dependency>
     </dependencies>
+
+    <!-- Profiles for OS-specific dependencies -->
+    <profiles>
+        <!-- Linux profile -->
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <dependencies>
+                <!-- BlueCove-GPL for Linux/BlueZ support -->
+                <dependency>
+                    <groupId>net.sf.bluecove</groupId>
+                    <artifactId>bluecove-gpl</artifactId>
+                    <version>2.1.0</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
@@ -101,6 +116,27 @@
                      <mainClass>com.heatsync.HeatSyncApp</mainClass>
                  </configuration>
              </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.heatsync.HeatSyncApp</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project> 

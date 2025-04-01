@@ -2,8 +2,6 @@ package com.heatsync.ui;
 
 import com.heatsync.service.BluetoothService;
 import com.heatsync.service.bluetooth.BluetoothEventListener;
-import com.welie.blessed.BluetoothCommandStatus;
-import com.welie.blessed.BluetoothPeripheral;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -38,7 +36,7 @@ public class BluetoothPanel implements BluetoothEventListener {
     private JSlider fanSpeedSlider;
     
     // Data
-    private Map<String, BluetoothPeripheral> discoveredDevicesMap = new HashMap<>();
+    private Map<String, String> deviceAddressMap = new HashMap<>(); // Maps display string to device address
     private boolean autoMode = true;
     private boolean scanning = false;
     
@@ -133,21 +131,21 @@ public class BluetoothPanel implements BluetoothEventListener {
                     bluetoothService.stopDeviceDiscovery();
                     scanning = false;
                     scanButton.setText("Scan for Devices");
-                    logCallback.accept("BLE scan stopped.");
+                    logCallback.accept("Bluetooth scan stopped.");
                 } else {
                     // Clear previous devices
                     deviceListModel.clear();
-                    discoveredDevicesMap.clear();
+                    deviceAddressMap.clear();
                     connectButton.setEnabled(false);
                     
                     // Start scanning
                     if (bluetoothService.startDeviceDiscovery()) {
                         scanning = true;
                         scanButton.setText("Stop Scanning");
-                        logCallback.accept("Starting scan for BLE devices...");
+                        logCallback.accept("Starting scan for Bluetooth devices...");
                         logCallback.accept("Found devices will appear in the list on the right.");
                     } else {
-                        logCallback.accept("ERROR: Unable to start BLE scan.");
+                        logCallback.accept("ERROR: Unable to start Bluetooth scan.");
                     }
                 }
             }
@@ -161,14 +159,14 @@ public class BluetoothPanel implements BluetoothEventListener {
             public void actionPerformed(ActionEvent e) {
                 int selectedIndex = deviceList.getSelectedIndex();
                 if (selectedIndex != -1) {
-                    String selectedDevice = deviceListModel.getElementAt(selectedIndex);
-                    BluetoothPeripheral peripheral = discoveredDevicesMap.get(selectedDevice);
+                    String selectedDeviceDisplay = deviceListModel.getElementAt(selectedIndex);
+                    String deviceAddress = deviceAddressMap.get(selectedDeviceDisplay);
                     
-                    if (peripheral != null) {
-                        logCallback.accept("Attempting to connect to: " + selectedDevice);
-                        bluetoothService.connectToDevice(peripheral.getAddress());
+                    if (deviceAddress != null) {
+                        logCallback.accept("Attempting to connect to: " + selectedDeviceDisplay);
+                        bluetoothService.connectToDevice(deviceAddress);
                     } else {
-                        logCallback.accept("ERROR: Could not find the selected device.");
+                        logCallback.accept("ERROR: Could not find the address for the selected device.");
                     }
                 }
             }
@@ -236,14 +234,14 @@ public class BluetoothPanel implements BluetoothEventListener {
             logCallback.accept("Bluetooth initialized successfully!");
             scanButton.setEnabled(true);
         } else {
-            logCallback.accept("WARNING: BluetoothService was not initialized correctly. Check if your Bluetooth hardware is available and BlueZ is installed.");
+            logCallback.accept("WARNING: BluetoothService was not initialized correctly. Check if your Bluetooth hardware is available.");
             scanButton.setEnabled(false);
         }
     }
 
     // BluetoothEventListener implementation
     @Override
-    public void onDeviceDiscovered(BluetoothPeripheral peripheral, String name, String address, int rssi) {
+    public void onDeviceDiscovered(Object deviceObj, String name, String address, int rssi) {
         String deviceInfo = name + " (" + address + ") RSSI: " + rssi + " dBm";
         
         // Check if device already exists in the visual list
@@ -256,7 +254,7 @@ public class BluetoothPanel implements BluetoothEventListener {
                 deviceExists = true;
                 
                 // Update the map too
-                discoveredDevicesMap.put(deviceInfo, peripheral);
+                deviceAddressMap.put(deviceInfo, address);
                 break;
             }
         }
@@ -264,7 +262,7 @@ public class BluetoothPanel implements BluetoothEventListener {
         // If it doesn't exist, add it
         if (!deviceExists) {
             deviceListModel.addElement(deviceInfo);
-            discoveredDevicesMap.put(deviceInfo, peripheral);
+            deviceAddressMap.put(deviceInfo, address);
         }
         
         // Enable connect button if there's at least one device
@@ -274,9 +272,11 @@ public class BluetoothPanel implements BluetoothEventListener {
     }
 
     @Override
-    public void onDeviceConnected(BluetoothPeripheral peripheral) {
+    public void onDeviceConnected(Object deviceObj) {
         SwingUtilities.invokeLater(() -> {
-            logCallback.accept("Connected to " + peripheral.getName() + " (" + peripheral.getAddress() + ")");
+            // Try to extract name and address from the device object,
+            // but in most cases we'll only log a success message
+            logCallback.accept("Connected to device successfully");
             
             // Update interface to reflect connected state
             connectionStatusLabel.setText("Status: Connected");
@@ -288,9 +288,9 @@ public class BluetoothPanel implements BluetoothEventListener {
     }
 
     @Override
-    public void onDeviceDisconnected(BluetoothPeripheral peripheral, BluetoothCommandStatus status) {
+    public void onDeviceDisconnected(Object deviceObj, int status) {
         SwingUtilities.invokeLater(() -> {
-            logCallback.accept("Disconnected from " + peripheral.getName() + " (" + peripheral.getAddress() + ")");
+            logCallback.accept("Disconnected from device");
             
             // Update interface to reflect disconnected state
             connectionStatusLabel.setText("Status: Disconnected");

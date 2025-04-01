@@ -1,8 +1,10 @@
 package com.heatsync.service.bluetooth;
 
-import com.welie.blessed.BluetoothPeripheral;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.bluetooth.RemoteDevice;
+import java.io.IOException;
 
 /**
  * Responsible for data transfer between the application and Bluetooth devices.
@@ -37,21 +39,23 @@ public class BluetoothDataHandler {
      */
     public boolean sendTemperatureData(double cpuTemp, double gpuTemp, double diskTemp) {
         if (!connectionHandler.isConnected()) {
-            LOGGER.warn("Cannot send data: Not connected to a peripheral.");
+            LOGGER.warn("Cannot send data: Not connected to a device.");
             return false;
         }
         
-        BluetoothPeripheral peripheral = connectionHandler.getConnectedPeripheral();
-        if (peripheral == null) {
-            LOGGER.warn("Cannot send data: Connected peripheral is null.");
+        RemoteDevice device = connectionHandler.getConnectedDevice();
+        if (device == null) {
+            LOGGER.warn("Cannot send data: Connected device is null.");
             return false;
         }
         
-        LOGGER.info("Would send temperature data: CPU={}, GPU={}, Disk={}", cpuTemp, gpuTemp, diskTemp);
-        // Future implementation:
-        // byte[] data = formatTemperatureData(cpuTemp, gpuTemp, diskTemp);
-        // peripheral.writeCharacteristic(COOLER_SERVICE_UUID, TEMP_CHARACTERISTIC_UUID, data, WriteType.WITH_RESPONSE);
-        return false; // For now, just simulation
+        LOGGER.info("Sending temperature data: CPU={}, GPU={}, Disk={}", cpuTemp, gpuTemp, diskTemp);
+        
+        // Format the temperature data as a string for SPP
+        // T:CPU:GPU:DISK\n format (easily parseable by Arduino or similar)
+        String data = String.format("T:%.1f:%.1f:%.1f\n", cpuTemp, gpuTemp, diskTemp);
+        
+        return connectionHandler.sendData(data.getBytes());
     }
     
     /**
@@ -66,75 +70,59 @@ public class BluetoothDataHandler {
             return false;
         }
         
-        BluetoothPeripheral peripheral = connectionHandler.getConnectedPeripheral();
-        if (peripheral == null) {
-            LOGGER.warn("Cannot send PWM command: Connected peripheral is null.");
+        RemoteDevice device = connectionHandler.getConnectedDevice();
+        if (device == null) {
+            LOGGER.warn("Cannot send PWM command: Connected device is null.");
             return false;
         }
         
-        LOGGER.info("Would send PWM command: {}", pwmValue);
-        // Future implementation:
-        // byte[] data = new byte[]{(byte) pwmValue};
-        // peripheral.writeCharacteristic(COOLER_SERVICE_UUID, PWM_CHARACTERISTIC_UUID, data, WriteType.WITHOUT_RESPONSE);
-        return false; // For now, just simulation
+        LOGGER.info("Sending PWM command: {}", pwmValue);
+        
+        // Format the PWM command as a string for SPP
+        // P:VALUE\n format (easily parseable by Arduino or similar)
+        String command = String.format("P:%d\n", pwmValue);
+        
+        return connectionHandler.sendData(command.getBytes());
     }
     
     /**
-     * Reads data from the peripheral (e.g., RPM).
+     * Gets the name of the connected device.
      * 
-     * @return The data read or null if reading was not possible
+     * @return The device name or null if not connected
      */
-    public String receiveData() {
+    public String getConnectedDeviceName() {
         if (!connectionHandler.isConnected()) {
-            LOGGER.warn("Cannot receive data: Not connected.");
             return null;
         }
         
-        BluetoothPeripheral peripheral = connectionHandler.getConnectedPeripheral();
-        if (peripheral == null) {
-            LOGGER.warn("Cannot receive data: Connected peripheral is null.");
+        RemoteDevice device = connectionHandler.getConnectedDevice();
+        if (device == null) {
             return null;
         }
         
-        LOGGER.info("Would receive data from peripheral");
-        // Future implementation:
-        // byte[] value = peripheral.readCharacteristic(COOLER_SERVICE_UUID, RPM_CHARACTERISTIC_UUID);
-        // return parseRpmData(value);
-        return null; // For now, just simulation
+        try {
+            return device.getFriendlyName(false);
+        } catch (IOException e) {
+            LOGGER.error("Error getting device name", e);
+            return device.getBluetoothAddress();
+        }
     }
     
     /**
-     * Formats temperature data for sending.
+     * Gets the address of the connected device.
      * 
-     * @param cpuTemp CPU temperature
-     * @param gpuTemp GPU temperature
-     * @param diskTemp Disk temperature
-     * @return The formatted data in bytes
+     * @return The device address or null if not connected
      */
-    private byte[] formatTemperatureData(double cpuTemp, double gpuTemp, double diskTemp) {
-        // Future implementation - convert temperatures to appropriate format
-        // E.g., Simple protocol with 3 bytes, one for each temperature
-        byte[] data = new byte[3];
-        data[0] = (byte) Math.min(cpuTemp, 255);
-        data[1] = (byte) Math.min(gpuTemp, 255);
-        data[2] = (byte) Math.min(diskTemp, 255);
-        return data;
-    }
-    
-    /**
-     * Parses received RPM data.
-     * 
-     * @param data The received data
-     * @return The interpreted data
-     */
-    private String parseRpmData(byte[] data) {
-        // Future implementation - interpret the data received from the device
-        if (data == null || data.length == 0) {
+    public String getConnectedDeviceAddress() {
+        if (!connectionHandler.isConnected()) {
             return null;
         }
         
-        // Example: interpret first byte as RPM divided by 10
-        int rpm = data[0] * 10;
-        return String.format("RPM: %d", rpm);
+        RemoteDevice device = connectionHandler.getConnectedDevice();
+        if (device == null) {
+            return null;
+        }
+        
+        return device.getBluetoothAddress();
     }
 } 

@@ -1,8 +1,5 @@
 package com.heatsync.service.bluetooth;
 
-import com.welie.blessed.BluetoothCommandStatus;
-import com.welie.blessed.BluetoothPeripheral;
-
 /**
  * Interface to notify the UI about Bluetooth events.
  */
@@ -10,27 +7,27 @@ public interface BluetoothEventListener {
     /**
      * Called when a Bluetooth device is discovered.
      * 
-     * @param peripheral The peripheral device
+     * @param deviceObj The discovered device object
      * @param name The device name
      * @param address The MAC address of the device
      * @param rssi The signal strength (RSSI)
      */
-    void onDeviceDiscovered(BluetoothPeripheral peripheral, String name, String address, int rssi);
+    void onDeviceDiscovered(Object deviceObj, String name, String address, int rssi);
     
     /**
      * Called when a device is successfully connected.
      * 
-     * @param peripheral The connected device
+     * @param deviceObj The connected device object
      */
-    void onDeviceConnected(BluetoothPeripheral peripheral);
+    void onDeviceConnected(Object deviceObj);
     
     /**
      * Called when a device is disconnected.
      * 
-     * @param peripheral The disconnected device
+     * @param deviceObj The disconnected device object
      * @param status The disconnection status
      */
-    void onDeviceDisconnected(BluetoothPeripheral peripheral, BluetoothCommandStatus status);
+    void onDeviceDisconnected(Object deviceObj, int status);
     
     /**
      * Called when a scan failure occurs.

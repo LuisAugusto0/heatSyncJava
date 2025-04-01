@@ -2,8 +2,7 @@ package com.heatsync.service;
 
 import com.heatsync.service.bluetooth.BluetoothEventListener;
 import com.heatsync.service.bluetooth.BluetoothManager;
-import com.welie.blessed.BluetoothCommandStatus;
-import com.welie.blessed.BluetoothPeripheral;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,9 +23,19 @@ public class BluetoothService implements BluetoothEventListener {
      * Default constructor. Initializes the BluetoothManager.
      */
     public BluetoothService() {
-        LOGGER.info("Initializing BluetoothService with Blessed-Bluez...");
-        bluetoothManager = new BluetoothManager();
-        bluetoothManager.setEventListener(this);
+        LOGGER.info("Initializing BluetoothService with BlueCove (SPP)...");
+        try {
+            bluetoothManager = new BluetoothManager();
+            bluetoothManager.setEventListener(this);
+            if (!bluetoothManager.isInitialized()) {
+                LOGGER.error("BluetoothManager initialized but reported isInitialized() = false");
+            } else {
+                LOGGER.info("BluetoothManager successfully initialized and reported isInitialized() = true");
+            }
+        } catch (Exception e) {
+            LOGGER.error("Exception during BluetoothManager initialization", e);
+            throw new RuntimeException("Failed to initialize BluetoothService", e);
+        }
     }
     
     /**
@@ -46,7 +55,7 @@ public class BluetoothService implements BluetoothEventListener {
     }
     
     /**
-     * Starts the discovery of BLE devices.
+     * Starts the discovery of Bluetooth devices.
      * @return true if scanning was started, false otherwise.
      */
     public boolean startDeviceDiscovery() {
@@ -54,7 +63,7 @@ public class BluetoothService implements BluetoothEventListener {
     }
     
     /**
-     * Stops the discovery of BLE devices.
+     * Stops the discovery of Bluetooth devices.
      */
     public void stopDeviceDiscovery() {
         bluetoothManager.stopDeviceDiscovery();
@@ -129,23 +138,23 @@ public class BluetoothService implements BluetoothEventListener {
     
     // Implementation of BluetoothEventListener interface methods
     @Override
-    public void onDeviceDiscovered(BluetoothPeripheral peripheral, String name, String address, int rssi) {
+    public void onDeviceDiscovered(Object deviceObj, String name, String address, int rssi) {
         if (eventListener != null) {
-            eventListener.onDeviceDiscovered(peripheral, name, address, rssi);
+            eventListener.onDeviceDiscovered(deviceObj, name, address, rssi);
         }
     }
 
     @Override
-    public void onDeviceConnected(BluetoothPeripheral peripheral) {
+    public void onDeviceConnected(Object deviceObj) {
         if (eventListener != null) {
-            eventListener.onDeviceConnected(peripheral);
+            eventListener.onDeviceConnected(deviceObj);
         }
     }
 
     @Override
-    public void onDeviceDisconnected(BluetoothPeripheral peripheral, BluetoothCommandStatus status) {
+    public void onDeviceDisconnected(Object deviceObj, int status) {
         if (eventListener != null) {
-            eventListener.onDeviceDisconnected(peripheral, status);
+            eventListener.onDeviceDisconnected(deviceObj, status);
         }
     }
 

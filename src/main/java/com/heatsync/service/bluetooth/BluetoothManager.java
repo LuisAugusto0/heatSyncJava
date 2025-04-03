@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
 
+import java.text.DecimalFormat;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -391,9 +393,10 @@ public class BluetoothManager implements DiscoveryListener {
         }
         
         try {
+            DecimalFormat df = new DecimalFormat("00.0");
             // Format the temperature data as a string
             // T:CPU:GPU:DISK\n format (easily parseable by Arduino or similar)
-            String data = String.format("T:%.1f:%.1f:%.1f\n", cpuTemp, gpuTemp, diskTemp);
+            String data = String.format("%s:%s:%s\n", df.format(cpuTemp), df.format(gpuTemp), df.format(diskTemp));
             byte[] bytes = data.getBytes();
             
             // Send the data

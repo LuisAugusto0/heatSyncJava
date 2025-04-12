@@ -2,7 +2,6 @@ package com.heatsync;
 
 import com.heatsync.controller.MonitoringController;
 import com.heatsync.service.BluetoothService;
-import com.heatsync.service.PowerMonitor;
 import com.heatsync.service.TemperatureMonitor;
 import com.heatsync.ui.MainWindow;
 import javax.swing.*;
@@ -16,7 +15,6 @@ public class HeatSyncApp {
     private static final Logger LOGGER = Logger.getLogger(HeatSyncApp.class.getName());
     
     private TemperatureMonitor temperatureMonitor;
-    private PowerMonitor powerMonitor;
     private BluetoothService bluetoothService;
     private MainWindow mainWindow;
     private MonitoringController monitoringController;
@@ -29,12 +27,11 @@ public class HeatSyncApp {
         initializeServices();
         
         // Initialize UI
-        mainWindow = new MainWindow(temperatureMonitor, powerMonitor, bluetoothService);
+        mainWindow = new MainWindow(temperatureMonitor, bluetoothService);
         
         // Initialize controller
         monitoringController = new MonitoringController(
                 temperatureMonitor,
-                powerMonitor,
                 bluetoothService,
                 mainWindow.getTemperaturePanel(),
                 mainWindow.getBluetoothPanel());
@@ -48,7 +45,6 @@ public class HeatSyncApp {
      */
     private void initializeServices() {
         temperatureMonitor = new TemperatureMonitor();
-        powerMonitor = new PowerMonitor(temperatureMonitor);
         bluetoothService = new BluetoothService();
     }
     

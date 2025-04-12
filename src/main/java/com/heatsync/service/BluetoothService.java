@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Facade for the Bluetooth service.
- * Delegates operations to the underlying Bluetooth manager.
+ * Service that handles Bluetooth communication with peripherals.
  */
 public class BluetoothService implements BluetoothEventListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(BluetoothService.class);
@@ -20,7 +19,7 @@ public class BluetoothService implements BluetoothEventListener {
     private BluetoothEventListener eventListener;
     
     /**
-     * Default constructor. Initializes the BluetoothManager.
+     * Creates a new Bluetooth service.
      */
     public BluetoothService() {
         LOGGER.info("Initializing BluetoothService with BlueCove (SPP)...");
@@ -39,11 +38,16 @@ public class BluetoothService implements BluetoothEventListener {
     }
     
     /**
-     * Registers a listener to receive Bluetooth events.
-     * @param listener The listener to be registered.
+     * Sets the event listener for Bluetooth events.
+     * 
+     * @param listener The event listener
      */
-    public void setBluetoothEventListener(BluetoothEventListener listener) {
+    public void setEventListener(BluetoothEventListener listener) {
+        // Apenas atualiza o listener local, mantendo o BluetoothService como
+        // listener do BluetoothManager
         this.eventListener = listener;
+        // NÃO sobrescreva o listener do BluetoothManager
+        // bluetoothManager.setEventListener(listener); <- remova esta linha
     }
     
     /**
@@ -162,6 +166,14 @@ public class BluetoothService implements BluetoothEventListener {
     public void onScanFailed(int errorCode) {
         if (eventListener != null) {
             eventListener.onScanFailed(errorCode);
+        }
+    }
+
+    @Override
+    public void onFanRpmReceived(int rpm) {
+        if (eventListener != null) {
+            LOGGER.info("BFan RPM received: {}", rpm);
+            eventListener.onFanRpmReceived(rpm);
         }
     }
 }

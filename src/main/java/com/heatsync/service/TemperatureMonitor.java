@@ -32,6 +32,9 @@ public class TemperatureMonitor {
     private List<Gpu> gpus;
     private List<Disk> disks;
 
+
+    private static Map<String, String> config;
+
     /**
      * Default constructor, initializes components and their sensors.
      */
@@ -45,29 +48,39 @@ public class TemperatureMonitor {
      */
     private void initializeComponents() {
         // Enable debug mode in JSensors
-        Map<String, String> config = new HashMap<>();
-        config.put("debugMode", "true");
+        config = new HashMap<>();
+        config.put("debugMode", "false");
         
         cpus = JSensors.get.config(config).components().cpus;
         gpus = JSensors.get.config(config).components().gpus;
         disks = JSensors.get.config(config).components().disks;
         
         // Log detailed sensor information
-        logSensorDetails();
+        // logSensorDetails();
     }
+
+    private void updateComponents() {
+        cpus = JSensors.get.config(config).components().cpus;
+        gpus = JSensors.get.config(config).components().gpus;
+        disks = JSensors.get.config(config).components().disks;
+        
+        // Log detailed sensor information
+        // logSensorDetails();
+    }
+    
     
     /**
      * Logs detailed information about all sensors found.
      */
-    private void logSensorDetails() {
-        LOGGER.info("===== DETAILED SENSOR INFORMATION =====");
+    // private void logSensorDetails() {
+    //     LOGGER.info("===== DETAILED SENSOR INFORMATION =====");
         
-        logComponentDetails("CPU", cpus);
-        logComponentDetails("GPU", gpus);
-        logComponentDetails("DISK", disks);
+    //     logComponentDetails("CPU", cpus);
+    //     logComponentDetails("GPU", gpus);
+    //     logComponentDetails("DISK", disks);
         
-        LOGGER.info("=======================================");
-    }
+    //     LOGGER.info("=======================================");
+    // }
     
     /**
      * Logs detailed information for a specific category of components.
@@ -75,41 +88,41 @@ public class TemperatureMonitor {
      * @param componentType The component type (CPU, GPU, DISK)
      * @param components The list of components to log
      */
-    private <T> void logComponentDetails(String componentType, List<T> components) {
-        if (components == null || components.isEmpty()) {
-            LOGGER.info(componentType + " SENSORS: None found");
-            return;
-        }
+    // private <T> void logComponentDetails(String componentType, List<T> components) {
+    //     if (components == null || components.isEmpty()) {
+    //         LOGGER.info(componentType + " SENSORS: None found");
+    //         return;
+    //     }
         
-        LOGGER.info(componentType + " SENSORS:");
+    //     LOGGER.info(componentType + " SENSORS:");
         
-        components.forEach(component -> {
-            String name = "";
-            List<Temperature> temperatures = null;
+    //     components.forEach(component -> {
+    //         String name = "";
+    //         List<Temperature> temperatures = null;
             
-            if (component instanceof Cpu) {
-                Cpu cpu = (Cpu) component;
-                name = cpu.name;
-                temperatures = cpu.sensors.temperatures;
-            } else if (component instanceof Gpu) {
-                Gpu gpu = (Gpu) component;
-                name = gpu.name;
-                temperatures = gpu.sensors.temperatures;
-            } else if (component instanceof Disk) {
-                Disk disk = (Disk) component;
-                name = disk.name;
-                temperatures = disk.sensors.temperatures;
-            }
+    //         if (component instanceof Cpu) {
+    //             Cpu cpu = (Cpu) component;
+    //             name = cpu.name;
+    //             temperatures = cpu.sensors.temperatures;
+    //         } else if (component instanceof Gpu) {
+    //             Gpu gpu = (Gpu) component;
+    //             name = gpu.name;
+    //             temperatures = gpu.sensors.temperatures;
+    //         } else if (component instanceof Disk) {
+    //             Disk disk = (Disk) component;
+    //             name = disk.name;
+    //             temperatures = disk.sensors.temperatures;
+    //         }
             
-            LOGGER.info(componentType + " Name: " + name);
+    //         LOGGER.info(componentType + " Name: " + name);
             
-            if (temperatures != null) {
-                temperatures.forEach(temp -> 
-                    LOGGER.info("  Temperature: " + temp.name + " = " + temp.value + 
-                               " (Normalized: " + normalizeTemperature(temp.value) + "°C)"));
-            }
-        });
-    }
+    //         if (temperatures != null) {
+    //             temperatures.forEach(temp -> 
+    //                 LOGGER.info("  Temperature: " + temp.name + " = " + temp.value + 
+    //                            " (Normalized: " + normalizeTemperature(temp.value) + "°C)"));
+    //         }
+    //     });
+    // }
 
     /**
      * Gets the average CPU temperature.
@@ -185,6 +198,6 @@ public class TemperatureMonitor {
      */
     public void updateTemperatures() {
         // Update component data
-        initializeComponents();
+        updateComponents();
     }
 } 

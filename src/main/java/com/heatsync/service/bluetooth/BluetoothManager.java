@@ -13,9 +13,12 @@ import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
 
 import java.text.DecimalFormat;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.heatsync.service.BluetoothService;
 
 /**
  * BlueCove implementation of the Bluetooth manager.
@@ -332,50 +335,58 @@ public class BluetoothManager implements DiscoveryListener {
     private void startReadThread() {
         keepReading = true;
         readThread = new Thread(() -> {
-            byte[] buffer = new byte[1024];
-            
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             while (keepReading && isConnected) {
                 try {
-                    if (inputStream.available() > 0) {
-                        int bytesRead = inputStream.read(buffer);
-                        if (bytesRead > 0) {
-                            byte[] data = new byte[bytesRead];
-                            System.arraycopy(buffer, 0, data, 0, bytesRead);
-                            
-                            LOGGER.debug("Received {} bytes from device", bytesRead);
-                            
-                            // Here you could process the data, e.g. extract RPM values
-                            // For now, we just log it
-                            String message = new String(data, 0, bytesRead);
-                            LOGGER.info("Received message: {}", message);
+                    if (reader.ready()) {
+                        String line = reader.readLine();
+                        if (line != null && !line.isEmpty()) {
+                            LOGGER.debug("Received message: {}", line);
+                            // Supondo que a mensagem seja somente o valor do RPM enviado pelo Arduino
+                            try {
+                                int rpm = Integer.parseInt(line.trim());
+                                // Notifica a camada de UI ou controlador com o novo valor de RPM
+                                notifyFanRpmReceived(rpm);
+                            } catch (NumberFormatException ex) {
+                                LOGGER.error("Mensagem de RPM inválida: {}", line, ex);
+                            }
                         }
+                    } else {
+                        Thread.sleep(100);
                     }
-                    
-                    // Sleep a bit to prevent high CPU usage
-                    Thread.sleep(100);
-                    
                 } catch (IOException e) {
                     if (keepReading) {
-                        LOGGER.error("Error reading from device", e);
+                        LOGGER.error("Erro ao ler dados do dispositivo", e);
                         closeConnection();
-                        
                         if (eventListener != null) {
                             eventListener.onDeviceDisconnected(connectedDevice, -3);
                         }
                     }
                     break;
                 } catch (InterruptedException e) {
-                    LOGGER.error("Read thread interrupted", e);
+                    LOGGER.error("Thread de leitura interrompida", e);
                     Thread.currentThread().interrupt();
                     break;
                 }
             }
-            
-            LOGGER.info("Read thread stopped");
+            LOGGER.info("Thread de leitura finalizada");
         });
-        
         readThread.setDaemon(true);
         readThread.start();
+    }
+
+    /**
+     * Método para notificar o RPM recebido.
+     */
+    private void notifyFanRpmReceived(int rpm) {
+        // Try to use eventListener directly if it's a BluetoothDataListener
+        if (eventListener != null) {
+            LOGGER.info("notifyFanRpmReceived() chamado com rpm = " + rpm);
+            eventListener.onFanRpmReceived(rpm);
+        } 
+        else {
+            LOGGER.warn("No BluetoothEventListener available to handle RPM update: RPM value = {}", rpm);
+        }
     }
     
     /**
@@ -647,4 +658,4 @@ public class BluetoothManager implements DiscoveryListener {
             }
         }
     }
-} 
+}

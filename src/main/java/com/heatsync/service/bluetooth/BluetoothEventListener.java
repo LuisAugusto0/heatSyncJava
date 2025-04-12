@@ -3,7 +3,7 @@ package com.heatsync.service.bluetooth;
 /**
  * Interface to notify the UI about Bluetooth events.
  */
-public interface BluetoothEventListener {
+public interface BluetoothEventListener extends BluetoothDataListener {
     /**
      * Called when a Bluetooth device is discovered.
      * 
@@ -35,4 +35,4 @@ public interface BluetoothEventListener {
      * @param errorCode The error code
      */
     void onScanFailed(int errorCode);
-} 
+}

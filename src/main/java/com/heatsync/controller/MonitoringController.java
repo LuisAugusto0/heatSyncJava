@@ -1,10 +1,10 @@
 package com.heatsync.controller;
 
 import com.heatsync.service.BluetoothService;
-import com.heatsync.service.PowerMonitor;
 import com.heatsync.service.TemperatureMonitor;
 import com.heatsync.ui.BluetoothPanel;
 import com.heatsync.ui.TemperaturePanel;
+import com.heatsync.service.bluetooth.BluetoothEventListener;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -14,16 +14,16 @@ import java.util.logging.Logger;
  * Controller that coordinates temperature and power monitoring services
  * and updates the UI accordingly.
  */
-public class MonitoringController {
+public class MonitoringController implements BluetoothEventListener {
     private static final Logger LOGGER = Logger.getLogger(MonitoringController.class.getName());
     
     private final TemperatureMonitor temperatureMonitor;
-    private final PowerMonitor powerMonitor;
     private final BluetoothService bluetoothService;
     private final TemperaturePanel temperaturePanel;
     private final BluetoothPanel bluetoothPanel;
     
     private Timer updateTimer;
+    private volatile int currentFanRpm = 0;
     
     /**
      * Creates a new controller for temperature and power monitoring.
@@ -36,12 +36,10 @@ public class MonitoringController {
      */
     public MonitoringController(
             TemperatureMonitor temperatureMonitor, 
-            PowerMonitor powerMonitor,
             BluetoothService bluetoothService,
             TemperaturePanel temperaturePanel,
             BluetoothPanel bluetoothPanel) {
         this.temperatureMonitor = temperatureMonitor;
-        this.powerMonitor = powerMonitor;
         this.bluetoothService = bluetoothService;
         this.temperaturePanel = temperaturePanel;
         this.bluetoothPanel = bluetoothPanel;
@@ -56,7 +54,7 @@ public class MonitoringController {
             @Override
             public void run() {
                 updateTemperatures();
-                updatePowerConsumption();
+                // updatePowerConsumption();
                 sendDataIfNeeded();
             }
         }, 0, 2000); // Update every 2 seconds
@@ -75,22 +73,35 @@ public class MonitoringController {
         temperaturePanel.updateCpuTemperature(cpuTemp);
         temperaturePanel.updateGpuTemperature(gpuTemp);
         temperaturePanel.updateDiskTemperature(diskTemp);
+        // LOGGER.info("updateTemperatures() chamando temperaturePanel.updateFanRpm com rpm = " + currentFanRpm);
+        // temperaturePanel.updateFanRpm(currentFanRpm);
     }
+    
+    /**
+     * Updates the fan RPM value and updates the UI.
+     * 
+     * @param rpm The new fan RPM value
+     */
+    // public void updateFanRpmValue(int rpm) {
+    //     LOGGER.info("updateFanRpmValue() chamado com rpm = " + rpm);
+    //     currentFanRpm = rpm;
+    //     temperaturePanel.updateFanRpm(rpm);
+    // }
     
     /**
      * Updates power consumption readings and updates the UI.
      */
-    private void updatePowerConsumption() {
-        powerMonitor.updatePowerConsumption();
+    // private void updatePowerConsumption() {
+    //     powerMonitor.updatePowerConsumption();
         
-        double cpuPower = powerMonitor.getCpuPowerWatts();
-        double gpuPower = powerMonitor.getGpuPowerWatts();
-        double totalPower = powerMonitor.getTotalPowerWatts();
+    //     double cpuPower = powerMonitor.getCpuPowerWatts();
+    //     double gpuPower = powerMonitor.getGpuPowerWatts();
+    //     double totalPower = powerMonitor.getTotalPowerWatts();
         
-        temperaturePanel.updateCpuPower(cpuPower);
-        temperaturePanel.updateGpuPower(gpuPower);
-        temperaturePanel.updateTotalPower(totalPower);
-    }
+    //     temperaturePanel.updateCpuPower(cpuPower);
+    //     temperaturePanel.updateGpuPower(gpuPower);
+    //     temperaturePanel.updateTotalPower(totalPower);
+    // }
     
     /**
      * Sends temperature data to connected Bluetooth device if needed.
@@ -117,4 +128,32 @@ public class MonitoringController {
             updateTimer = null;
         }
     }
-} 
+
+    @Override
+    public void onFanRpmReceived(int rpm) {
+    //     LOGGER.info("onFanRpmReceived() chamado com rpm = " + rpm);
+    //     updateFanRpmValue(rpm);
+    //     LOGGER.info("Fan RPM atualizado via Bluetooth: " + rpm);
+    }
+
+    @Override
+    public void onDeviceDisconnected(Object device, int status) {
+        // Ação mínima ou lógica de tratamento de desconexão
+        LOGGER.info("Device disconnected: " + device + " with status: " + status);
+    }
+    
+    @Override
+    public void onDeviceDiscovered(Object device, String name, String address, int rssi) {
+        LOGGER.info("Device discovered: " + name + " (" + address + ") RSSI: " + rssi);
+    }
+
+    @Override
+    public void onScanFailed(int errorCode) {
+        LOGGER.info("Bluetooth scan failed with error code: " + errorCode);
+    }
+
+    @Override
+    public void onDeviceConnected(Object device) {
+        LOGGER.info("Device connected: " + device);
+    }
+}

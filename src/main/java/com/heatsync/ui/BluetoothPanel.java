@@ -43,6 +43,9 @@ public class BluetoothPanel implements BluetoothEventListener {
     // Services
     private final BluetoothService bluetoothService;
     private final Consumer<String> logCallback;
+
+    // Panel for rpm reading
+    private TemperaturePanel temperaturePanel;
     
     /**
      * Creates a new Bluetooth panel with discovery and control components.
@@ -50,10 +53,11 @@ public class BluetoothPanel implements BluetoothEventListener {
      * @param bluetoothService The Bluetooth service
      * @param logCallback Callback for logging messages
      */
-    public BluetoothPanel(BluetoothService bluetoothService, Consumer<String> logCallback) {
+    public BluetoothPanel(BluetoothService bluetoothService, Consumer<String> logCallback, TemperaturePanel temperaturePanel) {
         this.bluetoothService = bluetoothService;
         this.logCallback = logCallback;
-        
+        this.temperaturePanel = temperaturePanel;
+
         initializeUI();
         registerBluetoothCallbacks();
     }
@@ -228,7 +232,8 @@ public class BluetoothPanel implements BluetoothEventListener {
      * Registers this panel as a listener for Bluetooth events.
      */
     private void registerBluetoothCallbacks() {
-        bluetoothService.setBluetoothEventListener(this);
+        // Alterado de setBluetoothEventListener para setEventListener
+        bluetoothService.setEventListener(this);
         
         if (bluetoothService.isInitialized()) {
             logCallback.accept("Bluetooth initialized successfully!");
@@ -345,4 +350,16 @@ public class BluetoothPanel implements BluetoothEventListener {
     public int getFanSpeed() {
         return fanSpeedSlider.getValue();
     }
-} 
+
+    @Override
+    public void onFanRpmReceived(int rpm) {
+        // Implementação correta para tratar os valores de RPM recebidos
+        SwingUtilities.invokeLater(() -> {
+            // Aqui você pode atualizar um label ou outro componente da UI com o valor do RPM
+            LOGGER.info("Fan RPM received: " + rpm);
+            temperaturePanel.updateFanRpm(rpm); // Atualiza o painel de temperatura com o RPM recebido
+            
+            // Se você tiver um componente específico para mostrar o RPM, atualize-o aqui
+        });
+    }
+}

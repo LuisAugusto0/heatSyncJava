@@ -39,10 +39,10 @@ public class TemperaturePanel extends JPanel {
     private void initializeUI() {
         setBorder(BorderFactory.createTitledBorder("Temperatures and Rpm"));
         
-        cpuTempLabel = new JLabel("CPU Temperature: --°C");
-        gpuTempLabel = new JLabel("GPU Temperature: --°C");
-        diskTempLabel = new JLabel("Disk Temperature: --°C");
-        fanRpmLabel = new JLabel("Fan RPM: --RPM");
+        cpuTempLabel = new JLabel("CPU Temperature: --,--°C");
+        gpuTempLabel = new JLabel("GPU Temperature: --,--°C");
+        diskTempLabel = new JLabel("Disk Temperature: --,--°C");
+        fanRpmLabel = new JLabel("Fan RPM: ---RPM");
 
         editFanProfileButton = new JButton("Edit Fan Profile");
         editFanProfileButton.addActionListener(new ActionListener() {
@@ -62,7 +62,7 @@ public class TemperaturePanel extends JPanel {
         if (mode == 0){
             setLayout(new GridLayout(6, 1, 5, 5));
         } else {
-            setLayout(new GridLayout(4, 1, 5, 5));
+            setLayout(new GridLayout(0, 4, 1, 1));
         }
         this.currentMode = mode;
         
@@ -77,6 +77,9 @@ public class TemperaturePanel extends JPanel {
         
         // Only add edit button in mode 0 (default mode)
         if (mode == 0) {
+            // Enable or disable the button based on the Bluetooth connection status.
+            // Assumes mainWindow.getBluetoothService().isConnected() returns a boolean.
+            // editFanProfileButton.setEnabled(mainWindow.getBluetoothService().isConnected());
             add(editFanProfileButton);
             LOGGER.fine("Temperature panel in default mode with edit button");
         } else {

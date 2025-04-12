@@ -103,6 +103,33 @@ public class BluetoothService implements BluetoothEventListener {
     }
     
     /**
+     * Envia um comando de perfil fixo para o periférico conectado.
+     * 
+     * Formato do comando: C<percentage>
+     *
+     * @param percentage O valor (0-100) a enviar
+     * @return true se o comando for enviado, false caso contrário
+     */
+    public boolean sendConstantCommand(int percentage) {
+        return bluetoothManager.sendConstantCommand(percentage);
+    }
+    
+    /**
+     * Envia dados de perfil para o periférico conectado.
+     * 
+     * Formato do comando: L<cpuMinTemp>:<gpuMinTemp>:<cpuMaxTemp>:<gpuMaxTemp>\n
+     *
+     * @param cpuMinTemp Temperatura mínima da CPU
+     * @param gpuMinTemp Temperatura mínima da GPU
+     * @param cpuMaxTemp Temperatura máxima da CPU
+     * @param gpuMaxTemp Temperatura máxima da GPU
+     * @return true se os dados forem enviados, false caso contrário
+     */
+    public boolean sendProfileData(int cpuMinTemp, int gpuMinTemp, int cpuMaxTemp, int gpuMaxTemp) {
+        return bluetoothManager.sendProfileData(cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp);
+    }
+    
+    /**
      * Closes the connection with the current peripheral.
      */
     public void closeConnection() {

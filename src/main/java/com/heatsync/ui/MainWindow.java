@@ -57,7 +57,7 @@ public class MainWindow {
     private void initializeUIElements() {
         mainFrame = new JFrame("HeatSync");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setSize(700, 500);
+        mainFrame.setSize(700, 600);
         mainFrame.setLayout(new BorderLayout(10, 10));
         
         // Create log panel first so logTextArea is initialized
@@ -136,14 +136,18 @@ public class MainWindow {
         mainFrame.setTitle("HeatSync - Fan Profile Editor");
         
         // Create a panel for the bottom buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel bottomPanel = new JPanel(new BorderLayout(5, 0));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton backButton = new JButton("Back to Main");
         backButton.addActionListener(e -> applyLayout(0));
+        bottomPanel.add(logPanel, BorderLayout.NORTH);
         buttonPanel.add(backButton);
+        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
         
         // Add components to the main frame
+        mainFrame.add(temperaturePanel, BorderLayout.NORTH);
         mainFrame.add(profilePanel, BorderLayout.CENTER);
-        mainFrame.add(buttonPanel, BorderLayout.SOUTH);
+        mainFrame.add(bottomPanel, BorderLayout.SOUTH);
         logMessage("Profile editor layout applied");
     }
 

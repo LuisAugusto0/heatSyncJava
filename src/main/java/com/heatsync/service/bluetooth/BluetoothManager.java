@@ -407,7 +407,7 @@ public class BluetoothManager implements DiscoveryListener {
             DecimalFormat df = new DecimalFormat("00.0");
             // Format the temperature data as a string
             // T:CPU:GPU:DISK\n format (easily parseable by Arduino or similar)
-            String data = String.format("%s:%s:%s\n", df.format(cpuTemp), df.format(gpuTemp), df.format(diskTemp));
+            String data = String.format("T%s:%s:%s\n", df.format(cpuTemp), df.format(gpuTemp), df.format(diskTemp));
             byte[] bytes = data.getBytes();
             
             // Send the data
@@ -448,6 +448,61 @@ public class BluetoothManager implements DiscoveryListener {
             return true;
         } catch (IOException e) {
             LOGGER.error("Error sending PWM command", e);
+            return false;
+        }
+    }
+
+    /**
+     * Sends a profile data command to the connected peripheral.
+     * 
+     * Command format: L<cpuMinTemp>:<gpuMinTemp>:<cpuMaxTemp>:<gpuMaxTemp>\n
+     * 
+     * @param cpuMinTemp Minimum CPU temperature threshold
+     * @param gpuMinTemp Minimum GPU temperature threshold
+     * @param cpuMaxTemp Maximum CPU temperature threshold
+     * @param gpuMaxTemp Maximum GPU temperature threshold
+     * @return true if the data was sent, false otherwise
+     */
+    public boolean sendProfileData(int cpuMinTemp, int gpuMinTemp, int cpuMaxTemp, int gpuMaxTemp) {
+        if (!isConnected || outputStream == null) {
+            LOGGER.error("Cannot send profile data. Not connected to any device.");
+            return false;
+        }
+        try {
+            String data = String.format("L%d:%d:%d:%d\n", cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp);
+            byte[] bytes = data.getBytes();
+            outputStream.write(bytes);
+            outputStream.flush();
+            LOGGER.debug("Sent profile data: {}", data.trim());
+            return true;
+        } catch (IOException e) {
+            LOGGER.error("Error sending profile data", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Sends a constant command to the connected peripheral.
+     * 
+     * Command format: C<percentage>
+     * 
+     * @param percentage The constant value (0-100) to be sent
+     * @return true if the command was sent, false otherwise
+     */
+    public boolean sendConstantCommand(int percentage) {
+        if (!isConnected || outputStream == null) {
+            LOGGER.error("Cannot send constant command. Not connected to any device.");
+            return false;
+        }
+        try {
+            String command = String.format("C%d", percentage);
+            byte[] bytes = command.getBytes();
+            outputStream.write(bytes);
+            outputStream.flush();
+            LOGGER.debug("Sent constant command: {}", command.trim());
+            return true;
+        } catch (IOException e) {
+            LOGGER.error("Error sending constant command", e);
             return false;
         }
     }

@@ -156,4 +156,9 @@ public class MonitoringController implements BluetoothEventListener {
     public void onDeviceConnected(Object device) {
         LOGGER.info("Device connected: " + device);
     }
+
+    @Override
+    public void onScanStopped() {
+        LOGGER.info("Bluetooth scan stopped.");
+    }
 }

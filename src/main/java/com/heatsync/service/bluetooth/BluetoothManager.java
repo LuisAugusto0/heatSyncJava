@@ -703,16 +703,24 @@ public class BluetoothManager implements DiscoveryListener {
         String completionType;
         boolean stoppedByUser = false;
         boolean unexpectedCompletion = false;
-        
+        boolean restartScan = false; // Flag to indicate if scan should be restarted
+
         switch (discType) {
             case DiscoveryListener.INQUIRY_COMPLETED:
-                completionType = "INQUIRY_COMPLETED (Unexpected)";
-                isScanning = false;
-                unexpectedCompletion = true;
+                // Inquiry cycle finished normally. If we are still supposed to be scanning, restart it.
+                if (isScanning) {
+                    completionType = "INQUIRY_COMPLETED (Restarting)";
+                    restartScan = true; // Mark for restart instead of stopping
+                } else {
+                    // If isScanning is false, it means stopDeviceDiscovery was called concurrently
+                    // or some other logic decided to stop. Treat as terminated.
+                    completionType = "INQUIRY_COMPLETED (Scan already stopped)";
+                    stoppedByUser = true; // Treat as if stopped by user in this edge case
+                }
                 break;
             case DiscoveryListener.INQUIRY_ERROR:
                 completionType = "INQUIRY_ERROR";
-                isScanning = false;
+                isScanning = false; // Stop scanning on error
                 if (eventListener != null) {
                     eventListener.onScanFailed(discType);
                 }
@@ -720,21 +728,51 @@ public class BluetoothManager implements DiscoveryListener {
                 break;
             case DiscoveryListener.INQUIRY_TERMINATED:
                 completionType = "INQUIRY_TERMINATED (Stopped by user)";
-                isScanning = false;
+                isScanning = false; // Explicitly stopped
                 stoppedByUser = true;
                 break;
             default:
                 completionType = "Unknown Completion Type: " + discType;
-                isScanning = false;
+                isScanning = false; // Stop scanning on unknown state
                 unexpectedCompletion = true;
                 break;
         }
-        
-        LOGGER.info("Discovery process ended: {}", completionType);
-        
-        // Notify UI that scan has stopped if it was terminated or completed unexpectedly
-        if ((stoppedByUser || unexpectedCompletion) && eventListener != null) {
-            eventListener.onScanStopped();
+
+        LOGGER.info("Discovery cycle ended: {}", completionType);
+
+        if (restartScan) {
+            // Restart the inquiry immediately
+            try {
+                LOGGER.info("Restarting Bluetooth inquiry...");
+                boolean started = discoveryAgent.startInquiry(DiscoveryAgent.GIAC, this);
+                if (!started) {
+                    LOGGER.error("Failed to restart Bluetooth inquiry.");
+                    isScanning = false; // If restart fails, stop scanning
+                    if (eventListener != null) {
+                        eventListener.onScanFailed(-1); // Use a generic error code
+                    }
+                } else {
+                    LOGGER.info("Bluetooth inquiry restarted successfully.");
+                }
+            } catch (BluetoothStateException e) {
+                LOGGER.error("Error restarting Bluetooth inquiry", e);
+                isScanning = false; // Stop scanning on error
+                if (eventListener != null) {
+                    eventListener.onScanFailed(-1); // Use a generic error code
+                }
+            }
+        } else {
+            // Notify UI that scan has stopped only if it was terminated, errored, or completed unexpectedly
+            // We don't notify if restartScan is true
+            if ((stoppedByUser || unexpectedCompletion || discType == DiscoveryListener.INQUIRY_ERROR) && eventListener != null) {
+                // Check if scanning is actually false before notifying stop
+                if (!isScanning) {
+                     eventListener.onScanStopped();
+                } else {
+                    // This case should ideally not happen if logic is correct, but log it
+                    LOGGER.warn("inquiryCompleted finished but isScanning is still true without restart intent. Type: {}", completionType);
+                }
+            }
         }
     }
 }

@@ -133,23 +133,28 @@ public class BluetoothPanel implements BluetoothEventListener {
                 if (scanning) {
                     // Stop scanning
                     bluetoothService.stopDeviceDiscovery();
-                    scanning = false;
-                    scanButton.setText("Scan for Devices");
-                    logCallback.accept("Bluetooth scan stopped.");
+                    // The isScanning flag will be set to false in inquiryCompleted
+                    // which will be called asynchronously after stopDeviceDiscovery completes.
+                    scanButton.setText("Stopping Scan..."); // Indicate intermediate state
+                    scanButton.setEnabled(false); // Prevent rapid clicking
                 } else {
-                    // Clear previous devices
+                    // Clear previous devices before starting a new scan
                     deviceListModel.clear();
                     deviceAddressMap.clear();
-                    connectButton.setEnabled(false);
+                    connectButton.setEnabled(false); // Disable connect until devices are found
                     
                     // Start scanning
                     if (bluetoothService.startDeviceDiscovery()) {
                         scanning = true;
                         scanButton.setText("Stop Scanning");
-                        logCallback.accept("Starting scan for Bluetooth devices...");
-                        logCallback.accept("Found devices will appear in the list on the right.");
+                        scanButton.setEnabled(true); // Ensure enabled
+                        logCallback.accept("Starting continuous Bluetooth scan...");
+                        logCallback.accept("Click 'Stop Scanning' to halt discovery.");
                     } else {
                         logCallback.accept("ERROR: Unable to start Bluetooth scan.");
+                        scanButton.setText("Scan for Devices"); // Reset button text on failure
+                        scanButton.setEnabled(bluetoothService.isInitialized()); // Re-enable if initialized
+                        scanning = false;
                     }
                 }
             }
@@ -301,17 +306,23 @@ public class BluetoothPanel implements BluetoothEventListener {
             connectionStatusLabel.setText("Status: Disconnected");
             connectionStatusLabel.setForeground(Color.RED);
             disconnectButton.setEnabled(false);
-            scanButton.setEnabled(true);
-            connectButton.setEnabled(!deviceList.isSelectionEmpty());
+            
+            // Re-enable scan button if not already scanning
+            if (!scanning) {
+                scanButton.setText("Scan for Devices");
+                scanButton.setEnabled(bluetoothService.isInitialized());
+            }
+            
         });
     }
 
     @Override
     public void onScanFailed(int errorCode) {
         SwingUtilities.invokeLater(() -> {
-            logCallback.accept("ERROR: Scan failed with error code " + errorCode);
+            logCallback.accept("ERROR: Bluetooth scan failed. Code: " + errorCode);
             scanning = false;
             scanButton.setText("Scan for Devices");
+            scanButton.setEnabled(bluetoothService.isInitialized());
         });
     }
 
@@ -360,6 +371,16 @@ public class BluetoothPanel implements BluetoothEventListener {
             temperaturePanel.updateFanRpm(rpm); // Atualiza o painel de temperatura com o RPM recebido
             
             // Se você tiver um componente específico para mostrar o RPM, atualize-o aqui
+        });
+    }
+
+    // Add a listener method for scan completion/termination
+    public void onScanStopped() {
+        SwingUtilities.invokeLater(() -> {
+            scanning = false;
+            scanButton.setText("Scan for Devices");
+            scanButton.setEnabled(bluetoothService.isInitialized());
+            logCallback.accept("Bluetooth scan stopped.");
         });
     }
 }

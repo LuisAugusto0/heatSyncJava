@@ -212,10 +212,10 @@ public class BluetoothService implements BluetoothEventListener {
     @Override
     public void onScanStopped() {
         if (eventListener != null) {
+            LOGGER.debug("onScanStopped() chamado, repassando para eventListener");
             eventListener.onScanStopped();
         }
     }
-    
     @Override
     public void onFanRpmReceived(int rpm) {
         if (eventListener != null) {

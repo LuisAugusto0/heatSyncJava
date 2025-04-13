@@ -453,7 +453,7 @@ public class BluetoothManager implements DiscoveryListener {
     }
 
     /**
-     * Sends a profile data command to the connected peripheral.
+     * Sends a automatic profile data command to the connected peripheral.
      * 
      * Command format: L<cpuMinTemp>:<gpuMinTemp>:<cpuMaxTemp>:<gpuMaxTemp>\n
      * 
@@ -463,13 +463,13 @@ public class BluetoothManager implements DiscoveryListener {
      * @param gpuMaxTemp Maximum GPU temperature threshold
      * @return true if the data was sent, false otherwise
      */
-    public boolean sendProfileData(int cpuMinTemp, int gpuMinTemp, int cpuMaxTemp, int gpuMaxTemp) {
+    public boolean sendProfileData(int cpuMinTemp, int gpuMinTemp, int cpuMaxTemp, int gpuMaxTemp, int minSpeed, int maxSpeed, double k) {
         if (!isConnected || outputStream == null) {
             LOGGER.error("Cannot send profile data. Not connected to any device.");
             return false;
         }
         try {
-            String data = String.format("L%d:%d:%d:%d\n", cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp);
+            String data = String.format("A%d:%d:%d:%d:%d:%d:%.2f\n", cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp, minSpeed, maxSpeed, k);
             byte[] bytes = data.getBytes();
             outputStream.write(bytes);
             outputStream.flush();
@@ -482,14 +482,14 @@ public class BluetoothManager implements DiscoveryListener {
     }
     
     /**
-     * Sends a constant command to the connected peripheral.
+     * Sends a constant profile data command to the connected peripheral.
      * 
      * Command format: C<percentage>
      * 
      * @param percentage The constant value (0-100) to be sent
      * @return true if the command was sent, false otherwise
      */
-    public boolean sendConstantCommand(int percentage) {
+    public boolean sendProfileData(int percentage) {
         if (!isConnected || outputStream == null) {
             LOGGER.error("Cannot send constant command. Not connected to any device.");
             return false;

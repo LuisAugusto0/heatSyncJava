@@ -60,12 +60,10 @@ public class TemperatureMonitor {
     }
 
     private void updateComponents() {
-        cpus = JSensors.get.config(config).components().cpus;
-        gpus = JSensors.get.config(config).components().gpus;
-        disks = JSensors.get.config(config).components().disks;
-        
-        // Log detailed sensor information
-        // logSensorDetails();
+        // Don't reinitialize components, just update their sensors
+        cpus = JSensors.get.components().cpus;
+        gpus = JSensors.get.components().gpus;
+        disks = JSensors.get.components().disks;
     }
     
     

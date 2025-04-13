@@ -4,7 +4,6 @@ import com.heatsync.service.BluetoothService;
 import com.heatsync.service.bluetooth.BluetoothEventListener;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;

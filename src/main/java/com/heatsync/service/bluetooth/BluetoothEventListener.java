@@ -35,4 +35,9 @@ public interface BluetoothEventListener extends BluetoothDataListener {
      * @param errorCode The error code
      */
     void onScanFailed(int errorCode);
+    
+    /**
+     * Called when the device scan is explicitly stopped by the user or completes unexpectedly.
+     */
+    void onScanStopped();
 }

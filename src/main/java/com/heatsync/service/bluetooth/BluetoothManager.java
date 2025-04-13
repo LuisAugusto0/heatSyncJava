@@ -203,9 +203,8 @@ public class BluetoothManager implements DiscoveryListener {
         }
         
         try {
-            LOGGER.info("Starting Bluetooth device discovery...");
+            LOGGER.info("Starting Bluetooth device discovery (indefinite)...");
             discoveredDevices.clear();
-            // Start discovery with both inquiry and service options
             boolean started = discoveryAgent.startInquiry(DiscoveryAgent.GIAC, this);
             if (started) {
                 isScanning = true;
@@ -219,6 +218,7 @@ public class BluetoothManager implements DiscoveryListener {
             if (eventListener != null) {
                 eventListener.onScanFailed(-1);
             }
+            isScanning = false; // Ensure isScanning is false on failure
             return false;
         }
     }
@@ -512,10 +512,15 @@ public class BluetoothManager implements DiscoveryListener {
      */
     public void closeConnection() {
         if (isConnected) {
+            RemoteDevice deviceBeingDisconnected = connectedDevice; // Store reference before nulling
+            int disconnectionStatus = 0; // 0 for clean user disconnect
+
             // Stop the read thread
             keepReading = false;
             if (readThread != null) {
                 readThread.interrupt();
+                // Wait briefly for the thread to potentially finish? Optional.
+                // try { readThread.join(100); } catch (InterruptedException ignored) {}
                 readThread = null;
             }
             
@@ -536,13 +541,22 @@ public class BluetoothManager implements DiscoveryListener {
                     streamConnection = null;
                 }
             } catch (IOException e) {
-                LOGGER.error("Error closing connection", e);
+                LOGGER.error("Error closing connection resources", e);
+                disconnectionStatus = -4; // Assign a new error code for resource closing failure
+            } finally {
+                // Update state regardless of stream closing errors
+                isConnected = false;
+                connectedDevice = null;
+                
+                LOGGER.info("Connection closed internally.");
+                
+                // Notify the listener AFTER internal state is updated
+                if (eventListener != null) {
+                    eventListener.onDeviceDisconnected(deviceBeingDisconnected, disconnectionStatus);
+                }
             }
-            
-            isConnected = false;
-            connectedDevice = null;
-            
-            LOGGER.info("Connection closed");
+        } else {
+             LOGGER.warn("closeConnection called but already disconnected.");
         }
     }
     
@@ -687,30 +701,40 @@ public class BluetoothManager implements DiscoveryListener {
     @Override
     public void inquiryCompleted(int discType) {
         String completionType;
+        boolean stoppedByUser = false;
+        boolean unexpectedCompletion = false;
         
         switch (discType) {
             case DiscoveryListener.INQUIRY_COMPLETED:
-                completionType = "INQUIRY_COMPLETED";
+                completionType = "INQUIRY_COMPLETED (Unexpected)";
+                isScanning = false;
+                unexpectedCompletion = true;
                 break;
             case DiscoveryListener.INQUIRY_ERROR:
                 completionType = "INQUIRY_ERROR";
+                isScanning = false;
+                if (eventListener != null) {
+                    eventListener.onScanFailed(discType);
+                }
+                // No need to call onScanStopped here, onScanFailed implies stop
                 break;
             case DiscoveryListener.INQUIRY_TERMINATED:
-                completionType = "INQUIRY_TERMINATED";
+                completionType = "INQUIRY_TERMINATED (Stopped by user)";
+                isScanning = false;
+                stoppedByUser = true;
                 break;
             default:
                 completionType = "Unknown Completion Type: " + discType;
+                isScanning = false;
+                unexpectedCompletion = true;
                 break;
         }
         
-        LOGGER.info("Discovery completed: {}", completionType);
-        isScanning = false;
+        LOGGER.info("Discovery process ended: {}", completionType);
         
-        if (discType != DiscoveryListener.INQUIRY_COMPLETED) {
-            // Notify error
-            if (eventListener != null) {
-                eventListener.onScanFailed(discType);
-            }
+        // Notify UI that scan has stopped if it was terminated or completed unexpectedly
+        if ((stoppedByUser || unexpectedCompletion) && eventListener != null) {
+            eventListener.onScanStopped();
         }
     }
 }

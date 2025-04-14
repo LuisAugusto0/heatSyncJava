@@ -110,10 +110,28 @@ public class BluetoothService implements BluetoothEventListener {
      * @param percentage O valor (0-100) a enviar
      * @return true se o comando for enviado, false caso contrário
      */
-    public boolean sendConstantCommand(int percentage) {
-        return bluetoothManager.sendConstantCommand(percentage);
+    public boolean sendConstantProfile(int percentage) {
+        return bluetoothManager.sendProfileData(percentage);
     }
     
+    /**
+     * Envia dados de perfil para o periférico conectado para um perfil linear de velocidade 0-100
+     *
+     * @param cpuMinTemp Temperatura mínima da CPU
+     * @param gpuMinTemp Temperatura mínima da GPU
+     * @param cpuMaxTemp Temperatura máxima da CPU
+     * @param gpuMaxTemp Temperatura máxima da GPU
+     * @return true se os dados forem enviados, false caso contrário
+     */
+    public boolean sendSimplifiedProfileData(int cpuMinTemp, int gpuMinTemp, int cpuMaxTemp, int gpuMaxTemp) {
+        // Exemplo de extração para constantes:
+        final int DEFAULT_MIN_SPEED = 0;
+        final int DEFAULT_MAX_SPEED = 100;
+        final double DEFAULT_K = 1.0;
+        return this.sendProfileData(cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp, 
+                                    DEFAULT_MIN_SPEED, DEFAULT_MAX_SPEED, DEFAULT_K);
+    }
+
     /**
      * Envia dados de perfil para o periférico conectado.
      * 
@@ -125,8 +143,8 @@ public class BluetoothService implements BluetoothEventListener {
      * @param gpuMaxTemp Temperatura máxima da GPU
      * @return true se os dados forem enviados, false caso contrário
      */
-    public boolean sendProfileData(int cpuMinTemp, int gpuMinTemp, int cpuMaxTemp, int gpuMaxTemp) {
-        return bluetoothManager.sendProfileData(cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp);
+    public boolean sendProfileData(int cpuMinTemp, int gpuMinTemp, int cpuMaxTemp, int gpuMaxTemp, int minSpeed, int maxSpeed, double k) {
+        return bluetoothManager.sendProfileData(cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp, minSpeed, maxSpeed, k);
     }
     
     /**

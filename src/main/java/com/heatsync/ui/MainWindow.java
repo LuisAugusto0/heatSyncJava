@@ -15,7 +15,6 @@ import java.util.logging.Logger;
  */
 public class MainWindow {
     private static final Logger LOGGER = Logger.getLogger(MainWindow.class.getName());
-    
 
     private JFrame mainFrame;
 
@@ -57,7 +56,7 @@ public class MainWindow {
     private void initializeUIElements() {
         mainFrame = new JFrame("HeatSync");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setSize(700, 600);
+        mainFrame.setMinimumSize(new Dimension(700, 550));
         mainFrame.setLayout(new BorderLayout(10, 10));
         
         // Create log panel first so logTextArea is initialized
@@ -124,7 +123,7 @@ public class MainWindow {
         // Add panels to the main frame
         mainFrame.add(topPanel, BorderLayout.CENTER);
         mainFrame.add(logPanel, BorderLayout.SOUTH);
-        logMessage("Main layout applied");
+        LOGGER.info("Main layout applied.");
     }
 
     /**
@@ -148,7 +147,7 @@ public class MainWindow {
         mainFrame.add(temperaturePanel, BorderLayout.NORTH);
         mainFrame.add(profilePanel, BorderLayout.CENTER);
         mainFrame.add(bottomPanel, BorderLayout.SOUTH);
-        logMessage("Profile editor layout applied");
+        LOGGER.info("Profile editor layout applied.");
     }
 
     

@@ -23,7 +23,6 @@ public class MonitoringController implements BluetoothEventListener {
     private final BluetoothPanel bluetoothPanel;
     
     private Timer updateTimer;
-    private volatile int currentFanRpm = 0;
     
     /**
      * Creates a new controller for temperature and power monitoring.

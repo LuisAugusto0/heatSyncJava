@@ -124,7 +124,12 @@ public class BluetoothService implements BluetoothEventListener {
      * @return true se os dados forem enviados, false caso contrário
      */
     public boolean sendSimplifiedProfileData(int cpuMinTemp, int gpuMinTemp, int cpuMaxTemp, int gpuMaxTemp) {
-        return this.sendProfileData(cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp, 0, 100, 1.0);
+        // Exemplo de extração para constantes:
+        final int DEFAULT_MIN_SPEED = 0;
+        final int DEFAULT_MAX_SPEED = 100;
+        final double DEFAULT_K = 1.0;
+        return this.sendProfileData(cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp, 
+                                    DEFAULT_MIN_SPEED, DEFAULT_MAX_SPEED, DEFAULT_K);
     }
 
     /**

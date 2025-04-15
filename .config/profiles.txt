@@ -1,0 +1,7 @@
+maxCpu: 10
+minCpu: 1
+maxGpu: 50
+minGpu: 2
+maxSpeed: 10
+minSpeed: 100
+curveGrowthConstant: 4.4

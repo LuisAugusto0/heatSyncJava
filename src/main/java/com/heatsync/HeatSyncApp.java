@@ -3,6 +3,7 @@ package com.heatsync;
 import com.heatsync.controller.MonitoringController;
 import com.heatsync.service.BluetoothService;
 import com.heatsync.service.TemperatureMonitor;
+import com.heatsync.tests.FanProfileConfigIOTest;
 import com.heatsync.ui.MainWindow;
 import javax.swing.*;
 import java.util.logging.Logger;
@@ -66,6 +67,8 @@ public class HeatSyncApp {
         } catch (Exception e) {
             LOGGER.warning("Could not set the system Look and Feel.");
         }
+        
+        FanProfileConfigIOTest.initiate();
 
         SwingUtilities.invokeLater(() -> {
             HeatSyncApp app = new HeatSyncApp();

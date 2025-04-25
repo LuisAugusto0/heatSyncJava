@@ -1,7 +1,8 @@
-maxCpu: 10
-minCpu: 1
-maxGpu: 50
-minGpu: 2
-maxSpeed: 10
-minSpeed: 100
-curveGrowthConstant: 4.4
+maxCpu: 85
+minCpu: 30
+maxGpu: 65
+minGpu: 30
+maxSpeed: 100
+minSpeed: 30
+curveGrowthConstant: 1.0
+macAddress: 00211301398B

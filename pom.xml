@@ -6,7 +6,7 @@
 
     <groupId>com.heatsync</groupId>
     <artifactId>heatSyncJava</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.3-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

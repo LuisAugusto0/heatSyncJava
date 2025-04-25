@@ -23,6 +23,7 @@ public class FanProfileConfigIO extends ConfigFileIO {
     final static public String maxSpeedString = Operators.MaxSpeed.label;
     final static public String minSpeedString = Operators.MinSpeed.label;
     final static public String curveGrowthConstantString = Operators.CurveGrowthConstant.label;
+    final static public String macAddressString = Operators.MacAddress.label;
 
     final static PairedList<String, String> defaults = PairedList.asListPair(
         Arrays.asList(
@@ -32,10 +33,11 @@ public class FanProfileConfigIO extends ConfigFileIO {
             minGpuString,
             maxSpeedString,
             minSpeedString,
-            curveGrowthConstantString
+            curveGrowthConstantString,
+            macAddressString
         ), 
         Arrays.asList(
-            "10", "1", "50", "2", "10", "100", "4.4"
+            "85", "30", "65", "30", "100", "0", "1", null
         )
     );
 
@@ -49,7 +51,8 @@ public class FanProfileConfigIO extends ConfigFileIO {
         MinGpu(3, "minGpu"),
         MaxSpeed(4, "maxSpeed"),
         MinSpeed(5, "minSpeed"),
-        CurveGrowthConstant(6, "curveGrowthConstant");
+        CurveGrowthConstant(6, "curveGrowthConstant"),
+        MacAddress(7, "macAddress");
     
         private final int code;
         private final String label;
@@ -61,7 +64,8 @@ public class FanProfileConfigIO extends ConfigFileIO {
             Map.entry(MinGpu.label, Operators.MinGpu),
             Map.entry(MaxSpeed.label, Operators.MaxSpeed),
             Map.entry(MinSpeed.label, Operators.MinSpeed),
-            Map.entry(CurveGrowthConstant.label, Operators.CurveGrowthConstant)
+            Map.entry(CurveGrowthConstant.label, Operators.CurveGrowthConstant),
+            Map.entry(MacAddress.label, Operators.MacAddress)
         ));
     
         Operators(int code, String label) {
@@ -94,6 +98,7 @@ public class FanProfileConfigIO extends ConfigFileIO {
 
         public double curveGrowthConstant = Double.MIN_VALUE;
         protected boolean[] valuesNull = ArrayFill.createFilledArray(Operators.values().length, true);
+        public String macAddress = null;
 
         public boolean isValueNull(Operators code) { return valuesNull[code.getCode()]; }
         public boolean isMaxCpuNull() { return valuesNull[Operators.MaxCpu.getCode()]; }
@@ -103,6 +108,8 @@ public class FanProfileConfigIO extends ConfigFileIO {
         public boolean isMaxSpeedNull() { return valuesNull[Operators.MaxSpeed.getCode()]; }
         public boolean isMinSpeedNull() { return valuesNull[Operators.MinSpeed.getCode()]; }
         public boolean isCurveGrowthCOnstantNull() { return valuesNull[Operators.CurveGrowthConstant.getCode()]; }
+        public boolean isMacAddressNull() { return valuesNull[Operators.MacAddress.getCode()]; }
+
 
         public boolean noNullValues() {
             boolean res = true;
@@ -113,6 +120,7 @@ public class FanProfileConfigIO extends ConfigFileIO {
             else if (isMaxSpeedNull()) res = false;
             else if (isMinSpeedNull()) res = false;
             else if (isCurveGrowthCOnstantNull()) res = false;
+            else if (isMacAddressNull()) res = false;
             
             return res;
         }
@@ -150,6 +158,11 @@ public class FanProfileConfigIO extends ConfigFileIO {
         public void setSpeedGrowthConstant(double d) { 
             valuesNull[Operators.CurveGrowthConstant.getCode()] = false;
             curveGrowthConstant = d;
+        }
+
+        public void setMacAddress(String s) { 
+            valuesNull[Operators.MacAddress.getCode()] = false;
+            macAddress = s;
         }
 
         void addIntegerOperandResponse(Operators op, int val) throws ConfigIOException {
@@ -210,6 +223,9 @@ public class FanProfileConfigIO extends ConfigFileIO {
                     s = Double.toString(curveGrowthConstant);
                     break;
 
+                case MacAddress:
+                    s = macAddress;
+                    break;
                 default:
                     s = "ILLEGAL CAST EXECUTED";
                     break;
@@ -293,6 +309,17 @@ public class FanProfileConfigIO extends ConfigFileIO {
                         );
                     }
                     break;
+                case MacAddress:
+                    String val = values.get(i);
+                    if (val.isEmpty() && val.length() != 12) {
+                        errorTrace.append(
+                            "Mac address {" + op.label + "} has non valid length argument {" + val + "} for file line " +
+                            i+1 + System.lineSeparator()
+                        );
+                    } else {
+                        response.setMacAddress(val);
+                    }
+                    break;
             }
         }
 
@@ -306,6 +333,13 @@ public class FanProfileConfigIO extends ConfigFileIO {
         writeSettingsFile(file, defaults);
     }
 
+    public static void writeConfig(File file, PairedList<String, String> config) throws IOException, ConfigIOException {
+        writeSettingsFile(file, config);
+    }
+
+    public static void writeConfig(File file, Response response) throws IOException, ConfigIOException {
+        writeSettingsFile(file, response.toPairs());
+    }
 }
 
 

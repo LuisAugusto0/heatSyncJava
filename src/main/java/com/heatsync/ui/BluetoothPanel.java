@@ -191,36 +191,36 @@ public class BluetoothPanel implements BluetoothEventListener {
             }
         });
         
-        // Auto/Manual mode toggle
-        autoManualToggle = new JToggleButton("Mode: Automatic");
-        autoManualToggle.setSelected(true);
-        autoManualToggle.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                autoMode = (e.getStateChange() == ItemEvent.SELECTED);
-                autoManualToggle.setText("Mode: " + (autoMode ? "Automatic" : "Manual"));
-                fanSpeedSlider.setEnabled(!autoMode);
-                logCallback.accept("Mode changed to " + (autoMode ? "automatic" : "manual"));
-            }
-        });
+        // // Auto/Manual mode toggle
+        // autoManualToggle = new JToggleButton("Mode: Automatic");
+        // autoManualToggle.setSelected(true);
+        // autoManualToggle.addItemListener(new ItemListener() {
+        //     @Override
+        //     public void itemStateChanged(ItemEvent e) {
+        //         autoMode = (e.getStateChange() == ItemEvent.SELECTED);
+        //         autoManualToggle.setText("Mode: " + (autoMode ? "Automatic" : "Manual"));
+        //         fanSpeedSlider.setEnabled(!autoMode);
+        //         logCallback.accept("Mode changed to " + (autoMode ? "automatic" : "manual"));
+        //     }
+        // });
         
-        // Fan speed slider
-        fanSpeedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
-        fanSpeedSlider.setMajorTickSpacing(20);
-        fanSpeedSlider.setMinorTickSpacing(5);
-        fanSpeedSlider.setPaintTicks(true);
-        fanSpeedSlider.setPaintLabels(true);
-        fanSpeedSlider.setEnabled(false);
-        fanSpeedSlider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                if (!fanSpeedSlider.getValueIsAdjusting() && !autoMode && bluetoothService.isConnected()) {
-                    int value = fanSpeedSlider.getValue();
-                    logCallback.accept("Setting fan speed to " + value + "%");
-                    bluetoothService.sendPwmCommand(value);
-                }
-            }
-        });
+        // // Fan speed slider
+        // fanSpeedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+        // fanSpeedSlider.setMajorTickSpacing(20);
+        // fanSpeedSlider.setMinorTickSpacing(5);
+        // fanSpeedSlider.setPaintTicks(true);
+        // fanSpeedSlider.setPaintLabels(true);
+        // fanSpeedSlider.setEnabled(false);
+        // fanSpeedSlider.addChangeListener(new ChangeListener() {
+        //     @Override
+        //     public void stateChanged(ChangeEvent e) {
+        //         if (!fanSpeedSlider.getValueIsAdjusting() && !autoMode && bluetoothService.isConnected()) {
+        //             int value = fanSpeedSlider.getValue();
+        //             logCallback.accept("Setting fan speed to " + value + "%");
+        //             bluetoothService.sendPwmCommand(value);
+        //         }
+        //     }
+        // });
         
         // Add components to control panel
         controlPanel.add(connectionStatusLabel);
@@ -228,8 +228,8 @@ public class BluetoothPanel implements BluetoothEventListener {
         controlPanel.add(scanButton);
         controlPanel.add(connectButton);
         controlPanel.add(disconnectButton);
-        controlPanel.add(autoManualToggle);
-        controlPanel.add(fanSpeedSlider);
+        // controlPanel.add(autoManualToggle);
+        // controlPanel.add(fanSpeedSlider);
     }
     
     /**

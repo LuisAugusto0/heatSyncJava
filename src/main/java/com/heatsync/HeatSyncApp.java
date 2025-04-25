@@ -3,8 +3,10 @@ package com.heatsync;
 import com.heatsync.controller.MonitoringController;
 import com.heatsync.service.BluetoothService;
 import com.heatsync.service.TemperatureMonitor;
-import com.heatsync.tests.FanProfileConfigIOTest;
+import com.heatsync.service.FanProfileIOService;
 import com.heatsync.ui.MainWindow;
+import com.profesorfalken.jsensors.model.sensors.Fan;
+
 import javax.swing.*;
 import java.util.logging.Logger;
 
@@ -47,6 +49,9 @@ public class HeatSyncApp {
     private void initializeServices() {
         temperatureMonitor = new TemperatureMonitor();
         bluetoothService = new BluetoothService();
+        if(!FanProfileIOService.getMacAddress().isEmpty() && bluetoothService.isInitialized()) {
+            bluetoothService.connectToDevice(FanProfileIOService.getMacAddress());
+        }
     }
     
     /**
@@ -68,7 +73,7 @@ public class HeatSyncApp {
             LOGGER.warning("Could not set the system Look and Feel.");
         }
         
-        FanProfileConfigIOTest.initiate();
+        FanProfileIOService.initiate();
 
         SwingUtilities.invokeLater(() -> {
             HeatSyncApp app = new HeatSyncApp();

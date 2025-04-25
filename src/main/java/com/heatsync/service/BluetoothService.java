@@ -144,6 +144,7 @@ public class BluetoothService implements BluetoothEventListener {
      * @return true se os dados forem enviados, false caso contrário
      */
     public boolean sendProfileData(int cpuMinTemp, int gpuMinTemp, int cpuMaxTemp, int gpuMaxTemp, int minSpeed, int maxSpeed, double k) {
+        FanProfileIOService.updateFanProfile(cpuMaxTemp, cpuMinTemp, gpuMaxTemp, gpuMinTemp, maxSpeed, minSpeed, k);
         return bluetoothManager.sendProfileData(cpuMinTemp, gpuMinTemp, cpuMaxTemp, gpuMaxTemp, minSpeed, maxSpeed, k);
     }
     

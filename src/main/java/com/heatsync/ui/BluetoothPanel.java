@@ -124,7 +124,8 @@ public class BluetoothPanel implements BluetoothEventListener {
         rssiPanel.add(rssiSlider, BorderLayout.CENTER);
         
         // Scan button
-        scanButton = new JButton("Scan for Devices");
+        scanning = bluetoothService.isScanning();
+        scanButton = new JButton(scanning ? "Stop Scanning" : "Scan for Devices");
         scanButton.setEnabled(bluetoothService.isInitialized());
         scanButton.addActionListener(new ActionListener() {
             @Override
@@ -382,4 +383,6 @@ public class BluetoothPanel implements BluetoothEventListener {
             logCallback.accept("Bluetooth scan stopped.");
         });
     }
+
+    
 }

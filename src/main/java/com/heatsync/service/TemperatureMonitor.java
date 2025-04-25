@@ -1,6 +1,8 @@
 package com.heatsync.service;
 
 import com.profesorfalken.jsensors.JSensors;
+import com.profesorfalken.jsensors.model.components.Component;
+import com.profesorfalken.jsensors.model.components.Components;
 import com.profesorfalken.jsensors.model.components.Cpu;
 import com.profesorfalken.jsensors.model.components.Disk;
 import com.profesorfalken.jsensors.model.components.Gpu;
@@ -31,7 +33,7 @@ public class TemperatureMonitor {
     private List<Cpu> cpus;
     private List<Gpu> gpus;
     private List<Disk> disks;
-
+    JSensors jSensorsTerminal;
 
     private static Map<String, String> config;
 
@@ -51,19 +53,19 @@ public class TemperatureMonitor {
         config = new HashMap<>();
         config.put("debugMode", "false");
         
-        cpus = JSensors.get.config(config).components().cpus;
-        gpus = JSensors.get.config(config).components().gpus;
-        disks = JSensors.get.config(config).components().disks;
-        
+        jSensorsTerminal = JSensors.get.config(config);
+
+        updateComponents();
         // Log detailed sensor information
         // logSensorDetails();
     }
 
     private void updateComponents() {
         // Don't reinitialize components, just update their sensors
-        cpus = JSensors.get.components().cpus;
-        gpus = JSensors.get.components().gpus;
-        disks = JSensors.get.components().disks;
+        Components components = jSensorsTerminal.components();
+        cpus = components.cpus;
+        gpus = components.gpus;
+        disks = components.disks;
     }
     
     

@@ -56,7 +56,7 @@ public class MonitoringController implements BluetoothEventListener {
                 // updatePowerConsumption();
                 sendDataIfNeeded();
             }
-        }, 0, 2000); // Update every 2 seconds
+        }, 0, 3000); // Update every 3 seconds
     }
     
     /**

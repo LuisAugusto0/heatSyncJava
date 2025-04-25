@@ -10,6 +10,10 @@ import java.util.List;
 
 import com.heatsync.util.PairedList;
 
+
+/*
+ * 
+ */
 public class ConfigFileIO {
    /* Simple write of all pairs on file 
      *
@@ -20,7 +24,7 @@ public class ConfigFileIO {
      * No safeguarding for incorrect {op : value} pair - Invalid configs can be written
      */
     // 
-    public static void writeSettingsFile(File file, PairedList<String, String> pairs) throws IOException, ConfigIOException {
+    public static void writeSettingsFile(File file, PairedList<String, String> pairs) throws IOException {
         List<String> opList = pairs.first;
         List<String> valList = pairs.second;
         

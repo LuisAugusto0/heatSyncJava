@@ -19,7 +19,7 @@ import java.io.InputStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.heatsync.service.BluetoothService;
-import com.heatsync.service.FanProfileIOService;
+import com.heatsync.service.configIO.FanProfileIOService;
 import com.heatsync.ui.BluetoothPanel;
 import com.profesorfalken.jsensors.model.sensors.Fan;
 
@@ -307,7 +307,9 @@ public class BluetoothManager implements DiscoveryListener {
                     eventListener.onDeviceConnected(device);
                 }
                 
+            
                 FanProfileIOService.setMacAddress(deviceAddress); // Save the MAC address for future reference
+                
                 sendProfileData(FanProfileIOService.getMinCpu(), FanProfileIOService.getMinGpu(), FanProfileIOService.getMaxCpu(), FanProfileIOService.getMaxGpu(), FanProfileIOService.getMinSpeed(), FanProfileIOService.getMaxSpeed(), FanProfileIOService.getCurveGrowthConstant()); 
                 stopDeviceDiscovery(); // Stop discovery after connection
                 LOGGER.info("Successfully connected to device: {}", deviceAddress);

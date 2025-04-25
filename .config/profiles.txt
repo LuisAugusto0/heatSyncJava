@@ -3,6 +3,6 @@ minCpu: 30
 maxGpu: 65
 minGpu: 30
 maxSpeed: 100
-minSpeed: 30
+minSpeed: 0
 curveGrowthConstant: 1.0
-macAddress: 00211301398B
+macAddress: null

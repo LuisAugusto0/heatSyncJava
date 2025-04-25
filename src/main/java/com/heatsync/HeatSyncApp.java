@@ -3,7 +3,8 @@ package com.heatsync;
 import com.heatsync.controller.MonitoringController;
 import com.heatsync.service.BluetoothService;
 import com.heatsync.service.TemperatureMonitor;
-import com.heatsync.service.FanProfileIOService;
+import com.heatsync.service.configIO.ConfigIOException;
+import com.heatsync.service.configIO.FanProfileIOService;
 import com.heatsync.ui.MainWindow;
 import com.profesorfalken.jsensors.model.sensors.Fan;
 
@@ -67,17 +68,25 @@ public class HeatSyncApp {
      * @param args Command line arguments
      */
     public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            LOGGER.warning("Could not set the system Look and Feel.");
-        }
+        // try {
+        //     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        // } catch (Exception e) {
+        //     LOGGER.warning("Could not set the system Look and Feel.");
+        // }
         
-        FanProfileIOService.initiate();
-
-        SwingUtilities.invokeLater(() -> {
-            HeatSyncApp app = new HeatSyncApp();
-            app.show();
-        });
+        try {
+            // If keepStateFlag is set to true, missing fields of the config file
+            // will not be updated with defaults. Instead warn about the errors and exits
+            // On false, no exceptions are received, even with no reading permission
+            FanProfileIOService.initiate(false);
+        } catch (ConfigIOException e) {
+            e.printStackTrace();
+            System.exit(1); //User opted exit from keepStateFlag being true
+        } 
+        
+        // SwingUtilities.invokeLater(() -> {
+        //     HeatSyncApp app = new HeatSyncApp();
+        //     app.show();
+        // });
     }
 } 

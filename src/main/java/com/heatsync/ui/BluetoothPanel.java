@@ -1,6 +1,7 @@
 package com.heatsync.ui;
 
 import com.heatsync.service.BluetoothService;
+import com.heatsync.service.CsvLogger;
 import com.heatsync.service.bluetooth.BluetoothEventListener;
 
 import javax.swing.*;
@@ -36,6 +37,8 @@ public class BluetoothPanel implements BluetoothEventListener {
     private JButton scanButton;
     private JToggleButton autoManualToggle;
     private JSlider fanSpeedSlider;
+    private JCheckBox dumpCheckBox;
+    private JCheckBox isInBenchmarkCheckBox;
     
     // Data
     private Map<String, String> deviceAddressMap = new HashMap<>(); // Maps display string to device address
@@ -45,6 +48,7 @@ public class BluetoothPanel implements BluetoothEventListener {
     // Services
     private final BluetoothService bluetoothService;
     private final Consumer<String> logCallback;
+    private final CsvLogger csvLogger;
 
     // Panel for rpm reading
     private TemperaturePanel temperaturePanel;
@@ -55,10 +59,11 @@ public class BluetoothPanel implements BluetoothEventListener {
      * @param bluetoothService The Bluetooth service
      * @param logCallback Callback for logging messages
      */
-    public BluetoothPanel(BluetoothService bluetoothService, Consumer<String> logCallback, TemperaturePanel temperaturePanel) {
+    public BluetoothPanel(BluetoothService bluetoothService, Consumer<String> logCallback, TemperaturePanel temperaturePanel, CsvLogger csvLogger) {
         this.bluetoothService = bluetoothService;
         this.logCallback = logCallback;
         this.temperaturePanel = temperaturePanel;
+        this.csvLogger = csvLogger;
 
         initializeUI();
         registerBluetoothCallbacks();
@@ -195,6 +200,39 @@ public class BluetoothPanel implements BluetoothEventListener {
             }
         });
         
+        dumpCheckBox = new JCheckBox("Dump RPM");
+        dumpCheckBox.setSelected(false); // Default state is unchecked
+        dumpCheckBox.setEnabled(false); // Enable only if connected
+        dumpCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(dumpCheckBox.isSelected()) {
+                    isInBenchmarkCheckBox.setEnabled(true); // Enable benchmark checkbox when dumping is enabled
+                    csvLogger.start(); // Enable RPM dumping in CsvLogger
+                } else {
+                    isInBenchmarkCheckBox.setEnabled(false); // Disable benchmark checkbox when dumping is disabled
+                    csvLogger.stop(); // Disable RPM dumping in CsvLogger
+                }
+                LOGGER.info("Dump RPM checkbox selected: " + dumpCheckBox.isSelected());
+            }
+        });
+        isInBenchmarkCheckBox = new JCheckBox("Toggle Benchmark state");
+        isInBenchmarkCheckBox.setSelected(false); // Default state is unchecked
+        isInBenchmarkCheckBox.setEnabled(false); // Enable only if connected
+        isInBenchmarkCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            if (isInBenchmarkCheckBox.isSelected()) {
+                dumpCheckBox.setEnabled(false); // Enable dump checkbox
+                LOGGER.info("Benchmark enabled");
+                // Additional logic for benchmark can be added here
+            } else {
+                dumpCheckBox.setEnabled(true); // Disable dump checkbox
+                LOGGER.info("Benchmark disabled");
+                // Additional logic for disabling benchmark can be added here
+            }
+            }
+        });
         // // Auto/Manual mode toggle
         // autoManualToggle = new JToggleButton("Mode: Automatic");
         // autoManualToggle.setSelected(true);
@@ -232,6 +270,8 @@ public class BluetoothPanel implements BluetoothEventListener {
         controlPanel.add(scanButton);
         controlPanel.add(connectButton);
         controlPanel.add(disconnectButton);
+        controlPanel.add(dumpCheckBox);
+        controlPanel.add(isInBenchmarkCheckBox);
         // controlPanel.add(autoManualToggle);
         // controlPanel.add(fanSpeedSlider);
     }
@@ -295,9 +335,9 @@ public class BluetoothPanel implements BluetoothEventListener {
             connectionStatusLabel.setText("Status: Connected");
             connectionStatusLabel.setForeground(Color.GREEN);
             disconnectButton.setEnabled(true);
+            dumpCheckBox.setEnabled(true); 
             scanButton.setEnabled(false);
             connectButton.setEnabled(false);
-            temperaturePanel.updateUIForMode(temperaturePanel.getMode());
         });
     }
 
@@ -310,7 +350,14 @@ public class BluetoothPanel implements BluetoothEventListener {
             connectionStatusLabel.setText("Status: Disconnected");
             connectionStatusLabel.setForeground(Color.RED);
             disconnectButton.setEnabled(false);
-            
+            if(csvLogger.isFileOpen()) {
+                csvLogger.stop(); // Stop logging if a test was running
+            }
+            dumpCheckBox.setSelected(false);
+            dumpCheckBox.setEnabled(false); 
+            isInBenchmarkCheckBox.setSelected(false);
+            isInBenchmarkCheckBox.setEnabled(false);
+
             // Re-enable scan button if not already scanning
             if (!scanning) {
                 scanButton.setText("Scan for Devices");
@@ -373,49 +420,8 @@ public class BluetoothPanel implements BluetoothEventListener {
             temperaturePanel.updateFanRpm(rpm); // Atualiza o painel de temperatura com o RPM recebido
 
             // Log the RPM to the console or a log area
-            if (temperaturePanel.isDumpRpmEnabled()) {
-                try {
-                    // Get current time in HH:mm:ss format
-                    LocalDateTime now = LocalDateTime.now();
-                    String timestamp = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-                    
-                    // Create logs directory if it doesn't exist
-                    File logsDir = new File("logs");
-                    if (!logsDir.exists()) {
-                        logsDir.mkdirs();
-                    }
-                    
-                    // Create filename with current date
-                    String date = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    String filePath = "logs/rpm_log_" + date + ".csv";
-                    File csvFile = new File(filePath);
-                    
-                    // Check if file exists to add header if it's new
-                    boolean isNewFile = !csvFile.exists();
-                    
-                    // Open file in append mode
-                    try (FileWriter fw = new FileWriter(csvFile, true);
-                         BufferedWriter bw = new BufferedWriter(fw);
-                         PrintWriter out = new PrintWriter(bw)) {
-                        
-                        // Write header if it's a new file
-                        if (isNewFile) {
-                            out.println("Timestamp,RPM");
-                        }
-                        
-                        // Write data
-                        out.println(timestamp + "," + rpm);
-                    }
-                    
-                    // Only log to UI occasionally to avoid spamming
-                    if (rpm % 100 == 0) { // Log every 100 RPM for less spam
-                        logCallback.accept("RPM data logged to " + filePath);
-                    }
-                    
-                } catch (IOException e) {
-                    LOGGER.severe("Error saving RPM data to CSV: " + e.getMessage());
-                    logCallback.accept("Error saving RPM data: " + e.getMessage());
-                }
+            if (dumpCheckBox.isSelected()) {
+                csvLogger.logRpmData(rpm, isInBenchmarkCheckBox.isSelected());
             }
         });
     }

@@ -1,6 +1,7 @@
 package com.heatsync.ui;
 
 import com.heatsync.service.BluetoothService;
+import com.heatsync.service.CsvLogger;
 import com.heatsync.service.TemperatureMonitor;
 
 import javax.swing.*;
@@ -33,6 +34,7 @@ public class MainWindow {
     // Services
     private final TemperatureMonitor temperatureMonitor;
     private final BluetoothService bluetoothService;
+    private final CsvLogger csvLogger = new CsvLogger(this::logMessage);
 
     
     /**
@@ -45,6 +47,7 @@ public class MainWindow {
     public MainWindow(TemperatureMonitor temperatureMonitor, BluetoothService bluetoothService) {
         this.temperatureMonitor = temperatureMonitor;
         this.bluetoothService = bluetoothService;
+        
         
         initializeUIElements();
         applyLayout(0);
@@ -69,8 +72,8 @@ public class MainWindow {
         logPanel.add(logScrollPane, BorderLayout.CENTER);
         
         // Create sub-panels
-        temperaturePanel = new TemperaturePanel(this, 0);
-        bluetoothPanel = new BluetoothPanel(bluetoothService, this::logMessage, temperaturePanel);
+        temperaturePanel = new TemperaturePanel(this, 0, csvLogger);
+        bluetoothPanel = new BluetoothPanel(bluetoothService, this::logMessage, temperaturePanel, csvLogger);
         profilePanel = new ProfilePanel(this);
 
         // Add JVM shutdown hook for system power off

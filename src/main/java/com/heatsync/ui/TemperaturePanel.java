@@ -1,6 +1,9 @@
 package com.heatsync.ui;
 
 import javax.swing.*;
+
+import com.heatsync.service.CsvLogger;
+
 import java.awt.*;
 import java.util.logging.Logger;
 import java.awt.event.ActionListener;
@@ -16,17 +19,19 @@ public class TemperaturePanel extends JPanel {
     private JLabel gpuTempLabel;
     private JLabel diskTempLabel;
     private JLabel fanRpmLabel;
-    private JCheckBox dumpCheckBox; // Checkbox to toggle RPM dumping
+
     private JButton editFanProfileButton;
     private MainWindow mainWindow;
     private int currentMode;
-    
+    private final CsvLogger csvLogger;
+
     /**
      * Creates a new temperature panel with all labels.
      * @param mainWindow The main window reference for layout changes
      * @param mode The mode for the panel layout (0 for default, 1 for profile edit mode)
      */
-    public TemperaturePanel(MainWindow mainWindow, int mode) {
+    public TemperaturePanel(MainWindow mainWindow, int mode, CsvLogger csvLogger) {
+        this.csvLogger = csvLogger;
         this.mainWindow = mainWindow;
         this.currentMode = mode;
         
@@ -44,8 +49,6 @@ public class TemperaturePanel extends JPanel {
         gpuTempLabel = new JLabel("GPU Temperature: --,--°C");
         diskTempLabel = new JLabel("Disk Temperature: --,--°C");
         fanRpmLabel = new JLabel("Fan RPM: ---RPM");
-        dumpCheckBox = new JCheckBox("Dump RPM");
-        dumpCheckBox.setSelected(false); // Default state is unchecked
         
 
         editFanProfileButton = new JButton("Edit Fan Profile");
@@ -84,8 +87,7 @@ public class TemperaturePanel extends JPanel {
             // Assumes mainWindow.getBluetoothService().isConnected() returns a boolean.
             editFanProfileButton.setEnabled(mainWindow.getBluetoothService().isConnected());
             add(editFanProfileButton);
-            dumpCheckBox.setEnabled(mainWindow.getBluetoothService().isConnected());
-            add(dumpCheckBox); // Add the checkbox to toggle RPM dumping
+            
             LOGGER.fine("Temperature panel in default mode with edit button");
         } else {
             add(new JLabel("")); // Placeholder in profile edit mode
@@ -117,14 +119,6 @@ public class TemperaturePanel extends JPanel {
         return this.currentMode;
     }
 
-    /**
-     * Gets the current state of the dump RPM checkbox.
-     * 
-     * @return true if RPM dumping is enabled, false otherwise
-     */
-    public boolean isDumpRpmEnabled() {
-        return dumpCheckBox.isSelected();
-    }
     
     /**
      * Updates the CPU temperature display.

@@ -73,12 +73,21 @@ public class MainWindow {
         bluetoothPanel = new BluetoothPanel(bluetoothService, this::logMessage, temperaturePanel);
         profilePanel = new ProfilePanel(this);
 
-        // Window closing event handler
+        // Add JVM shutdown hook for system power off
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("System shutdown detected, turning off fan...");
+            bluetoothService.sendConstantProfile(0);
+            if (bluetoothService != null) {
+                bluetoothService.shutdown();
+            }
+        }));
+        
+        // Keep the existing window listener
         mainFrame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 logMessage("Shutting down application...");
-                
+                bluetoothService.sendConstantProfile(0);
                 if (bluetoothService != null) {
                     bluetoothService.shutdown();
                 }

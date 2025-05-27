@@ -16,6 +16,7 @@ public class TemperaturePanel extends JPanel {
     private JLabel gpuTempLabel;
     private JLabel diskTempLabel;
     private JLabel fanRpmLabel;
+    private JCheckBox dumpCheckBox; // Checkbox to toggle RPM dumping
     private JButton editFanProfileButton;
     private MainWindow mainWindow;
     private int currentMode;
@@ -43,6 +44,9 @@ public class TemperaturePanel extends JPanel {
         gpuTempLabel = new JLabel("GPU Temperature: --,--°C");
         diskTempLabel = new JLabel("Disk Temperature: --,--°C");
         fanRpmLabel = new JLabel("Fan RPM: ---RPM");
+        dumpCheckBox = new JCheckBox("Dump RPM");
+        dumpCheckBox.setSelected(false); // Default state is unchecked
+        
 
         editFanProfileButton = new JButton("Edit Fan Profile");
         editFanProfileButton.addActionListener(new ActionListener() {
@@ -74,13 +78,14 @@ public class TemperaturePanel extends JPanel {
         add(gpuTempLabel);
         add(diskTempLabel);
         add(fanRpmLabel);
-        
         // Only add edit button in mode 0 (default mode)
         if (mode == 0) {
             // Enable or disable the button based on the Bluetooth connection status.
             // Assumes mainWindow.getBluetoothService().isConnected() returns a boolean.
-            // editFanProfileButton.setEnabled(mainWindow.getBluetoothService().isConnected());
+            editFanProfileButton.setEnabled(mainWindow.getBluetoothService().isConnected());
             add(editFanProfileButton);
+            dumpCheckBox.setEnabled(mainWindow.getBluetoothService().isConnected());
+            add(dumpCheckBox); // Add the checkbox to toggle RPM dumping
             LOGGER.fine("Temperature panel in default mode with edit button");
         } else {
             add(new JLabel("")); // Placeholder in profile edit mode
@@ -110,6 +115,15 @@ public class TemperaturePanel extends JPanel {
      */
     public int getMode() {
         return this.currentMode;
+    }
+
+    /**
+     * Gets the current state of the dump RPM checkbox.
+     * 
+     * @return true if RPM dumping is enabled, false otherwise
+     */
+    public boolean isDumpRpmEnabled() {
+        return dumpCheckBox.isSelected();
     }
     
     /**

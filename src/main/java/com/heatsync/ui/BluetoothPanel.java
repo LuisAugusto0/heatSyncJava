@@ -11,6 +11,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -294,6 +297,7 @@ public class BluetoothPanel implements BluetoothEventListener {
             disconnectButton.setEnabled(true);
             scanButton.setEnabled(false);
             connectButton.setEnabled(false);
+            temperaturePanel.updateUIForMode(temperaturePanel.getMode());
         });
     }
 
@@ -312,7 +316,6 @@ public class BluetoothPanel implements BluetoothEventListener {
                 scanButton.setText("Scan for Devices");
                 scanButton.setEnabled(bluetoothService.isInitialized());
             }
-            
         });
     }
 
@@ -364,13 +367,56 @@ public class BluetoothPanel implements BluetoothEventListener {
 
     @Override
     public void onFanRpmReceived(int rpm) {
-        // Implementação correta para tratar os valores de RPM recebidos
         SwingUtilities.invokeLater(() -> {
             // Aqui você pode atualizar um label ou outro componente da UI com o valor do RPM
             LOGGER.info("Fan RPM received: " + rpm);
             temperaturePanel.updateFanRpm(rpm); // Atualiza o painel de temperatura com o RPM recebido
-            
-            // Se você tiver um componente específico para mostrar o RPM, atualize-o aqui
+
+            // Log the RPM to the console or a log area
+            if (temperaturePanel.isDumpRpmEnabled()) {
+                try {
+                    // Get current time in HH:mm:ss format
+                    LocalDateTime now = LocalDateTime.now();
+                    String timestamp = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                    
+                    // Create logs directory if it doesn't exist
+                    File logsDir = new File("logs");
+                    if (!logsDir.exists()) {
+                        logsDir.mkdirs();
+                    }
+                    
+                    // Create filename with current date
+                    String date = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    String filePath = "logs/rpm_log_" + date + ".csv";
+                    File csvFile = new File(filePath);
+                    
+                    // Check if file exists to add header if it's new
+                    boolean isNewFile = !csvFile.exists();
+                    
+                    // Open file in append mode
+                    try (FileWriter fw = new FileWriter(csvFile, true);
+                         BufferedWriter bw = new BufferedWriter(fw);
+                         PrintWriter out = new PrintWriter(bw)) {
+                        
+                        // Write header if it's a new file
+                        if (isNewFile) {
+                            out.println("Timestamp,RPM");
+                        }
+                        
+                        // Write data
+                        out.println(timestamp + "," + rpm);
+                    }
+                    
+                    // Only log to UI occasionally to avoid spamming
+                    if (rpm % 100 == 0) { // Log every 100 RPM for less spam
+                        logCallback.accept("RPM data logged to " + filePath);
+                    }
+                    
+                } catch (IOException e) {
+                    LOGGER.severe("Error saving RPM data to CSV: " + e.getMessage());
+                    logCallback.accept("Error saving RPM data: " + e.getMessage());
+                }
+            }
         });
     }
 

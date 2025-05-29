@@ -50,7 +50,7 @@ final class Defaults {
     // Hide constructor
     private Defaults() {}
 
-    
+
     public static String getMaxCpu() { return operatorDefaults[Operators.MaxCpu.getCode()]; }
     public static String getMinCpu() { return operatorDefaults[Operators.MinCpu.getCode()]; }
     public static String getMaxGpu() { return operatorDefaults[Operators.MaxGpu.getCode()]; }
@@ -92,8 +92,10 @@ final public class FanProfileIOService {
 
     
     final static String workingDir = Paths.get("").toAbsolutePath().toString();
-    final static Path configPath = Paths.get(workingDir, ".config");
+    final static Path configFolderPath = Paths.get(workingDir, ".config");
     final static String configFileName = "profiles.txt";
+    final static Path configFilePath = configFolderPath.resolve(configFileName);
+
     static boolean keepStateFlag = false;
     
 
@@ -125,24 +127,23 @@ final public class FanProfileIOService {
     public static void initiate(boolean keepStateFlag) throws ConfigIOException {
         FanProfileIOService.keepStateFlag = keepStateFlag;
         
-        if (!Files.exists(configPath)) {
+        if (!Files.exists(configFolderPath)) {
             try {
-                Files.createDirectories(configPath);
-                System.out.println("Created: " + configPath);
+                Files.createDirectories(configFolderPath);
+                System.out.println("Created: " + configFolderPath);
             } catch (IOException e) {
-                System.err.println("Failed to create directory: " + configPath);
+                System.err.println("Failed to create directory: " + configFolderPath);
                 e.printStackTrace();
             }
         }
         
-        Path filename = configPath.resolve(configFileName);
-        File file = filename.toFile();
-        System.out.println(filename);
+        
+        File file = configFilePath.toFile();
 
         try {
             if (!file.exists()) {
                 System.out.println("Writing defaults");
-                
+                System.out.println(file.toString());
                 writeDefaultConfig(file);
             }
     
@@ -234,6 +235,7 @@ final public class FanProfileIOService {
     }
 
     static void updateFile() throws IOException {
-        FanProfileConfigIO.writeConfig(new File(workingDir + "/profiles.txt"), response);
+        
+        FanProfileConfigIO.writeConfig(configFilePath.toFile(), response);
     }
 }

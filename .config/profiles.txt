@@ -1,8 +1,8 @@
 maxCpu: 85
 minCpu: 30
-maxCpu: 65
+maxGpu: 65
 minGpu: 30
 maxSpeed: 100
 minSpeed: 0
-curveGrowthConstant: 1
-macAddress: 1234124
+curveGrowthConstant: 1.0
+macAddress: null

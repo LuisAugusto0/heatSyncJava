@@ -157,6 +157,7 @@ public class FanProfileConfigIO {
 
         public void setMacAddress(String s) { 
             valuesNull[Operators.MacAddress.getCode()] = false;
+            System.out.println("FOUND MAC ADDRESS: " + s);
             macAddress = s;
         }
 
@@ -322,11 +323,13 @@ public class FanProfileConfigIO {
 
                 case MacAddress:
                     String val = values.get(i);
-                    if (val.isEmpty() && val.length() != 12) {
+                    System.out.println("get value: " + val);
+                    if (val.isEmpty()) {
                         errorTrace.append(
                             "Mac address {" + op.label + "} has non valid length argument {" + val + "} for file line " +
                             i+1 + System.lineSeparator()
                         );
+                        System.out.println("INVALID MAC");
                     } else {
                         response.setMacAddress(val);
                     }
@@ -335,6 +338,7 @@ public class FanProfileConfigIO {
         }
 
         String errorString = errorTrace.toString();
+        System.out.println(errorString);
         if (!errorString.isEmpty()) throw new ConfigIOException(errorString);
         
         return response;
@@ -346,6 +350,8 @@ public class FanProfileConfigIO {
     }
 
     public static void writeConfig(File file, Response response) throws IOException {
+        Thread.dumpStack();
+
         ConfigFileIO.writeSettingsFile(file, response.toPairs());
     }
 }

@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+import javax.imageio.IIOException;
+
 import com.heatsync.service.configIO.FanProfileConfigIO.Operators;
 import com.heatsync.service.configIO.FanProfileConfigIO.Response;
 import com.heatsync.util.PairedList;
@@ -48,7 +50,7 @@ final class Defaults {
     // Hide constructor
     private Defaults() {}
 
-
+    
     public static String getMaxCpu() { return operatorDefaults[Operators.MaxCpu.getCode()]; }
     public static String getMinCpu() { return operatorDefaults[Operators.MinCpu.getCode()]; }
     public static String getMaxGpu() { return operatorDefaults[Operators.MaxGpu.getCode()]; }
@@ -72,7 +74,7 @@ final class Defaults {
             res.curveGrowthConstant = Double.parseDouble(Defaults.getCurveGrowthConstant());
         }
 
-        if (res.macAddress == null) res.macAddress = Defaults.getMaxCpu();
+        if (res.macAddress == null) res.macAddress = Defaults.getMacAddress();
     }
 
     static Response getDefaultResponse() {
@@ -115,6 +117,7 @@ final public class FanProfileIOService {
 
 
     public static void writeDefaultConfig(File file) throws IOException, ConfigIOException {
+        
         FanProfileConfigIO.writeConfig(file, Defaults.pairList);
     }
 
@@ -163,23 +166,28 @@ final public class FanProfileIOService {
             e.printStackTrace();
 
             response = Defaults.getDefaultResponse();
-        }
-
-
-        if (keepStateFlag == true) {
-            if (response.existsNullValue()) 
-                throw new ConfigIOException("Error when reading config file: Empty value detected");
-        } else {
-            Defaults.setNullValuesAsDefault(response);
-
-            try {
-                //UPGRADE REUSE LOGIC HERE!!
-                updateFile();
-            } catch (IOException e) {
-                System.err.println("Failed to update new values on the writer");
-            }
             
-        }
+        } catch (ConfigIOException e) {
+            System.err.println("Invalid config file");
+
+            if (keepStateFlag == true) {
+                if (response.existsNullValue()) 
+                    throw new ConfigIOException("Error when reading config file: Empty value detected");
+            } else {
+                Defaults.setNullValuesAsDefault(response);
+    
+                try {
+                    //UPGRADE REUSE LOGIC HERE!!
+                    updateFile();
+                } catch (IOException io) {
+                    System.err.println("Failed to update new values on the writer");
+                }
+                
+            }
+        }   
+
+
+
         
         logValues();
     }
@@ -198,14 +206,13 @@ final public class FanProfileIOService {
 
     public static void setMacAddress(String macAddress) {
         response.setMacAddress(macAddress);
-
+        System.out.println(macAddress);
         try {
             updateFile();
         } catch (IOException e) {
             System.err.println("Warning: Can not write macAddres to config file");
             e.printStackTrace();
         }
-        
     }
 
     public static void updateFanProfile(int maxCpu, int minCpu, int maxGpu, int minGpu, int maxSpeed, int minSpeed, double curveGrowthConstant) {

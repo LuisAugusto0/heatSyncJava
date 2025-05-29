@@ -50,7 +50,9 @@ public class HeatSyncApp {
     private void initializeServices() {
         temperatureMonitor = new TemperatureMonitor();
         bluetoothService = new BluetoothService();
-        if(!FanProfileIOService.getMacAddress().isEmpty() && bluetoothService.isInitialized()) {
+
+        
+        if(FanProfileIOService.getMacAddress() == null && bluetoothService.isInitialized()) {
             bluetoothService.connectToDevice(FanProfileIOService.getMacAddress());
         }
     }
@@ -68,11 +70,11 @@ public class HeatSyncApp {
      * @param args Command line arguments
      */
     public static void main(String[] args) {
-        // try {
-        //     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        // } catch (Exception e) {
-        //     LOGGER.warning("Could not set the system Look and Feel.");
-        // }
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            LOGGER.warning("Could not set the system Look and Feel.");
+        }
         
         try {
             // If keepStateFlag is set to true, missing fields of the config file
@@ -84,9 +86,9 @@ public class HeatSyncApp {
             System.exit(1); //User opted exit from keepStateFlag being true
         } 
         
-        // SwingUtilities.invokeLater(() -> {
-        //     HeatSyncApp app = new HeatSyncApp();
-        //     app.show();
-        // });
+        SwingUtilities.invokeLater(() -> {
+            HeatSyncApp app = new HeatSyncApp();
+            app.show();
+        });
     }
 } 

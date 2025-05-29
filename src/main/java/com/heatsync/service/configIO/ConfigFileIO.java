@@ -27,6 +27,7 @@ public class ConfigFileIO {
     public static void writeSettingsFile(File file, PairedList<String, String> pairs) throws IOException {
         List<String> opList = pairs.first;
         List<String> valList = pairs.second;
+        Thread.dumpStack();
         
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             for (int i = 0; i < opList.size(); i++) {
@@ -54,7 +55,7 @@ public class ConfigFileIO {
     throws IOException, ConfigIOException {
         String line;
         BufferedReader reader = new BufferedReader(fileReader);
-        
+
         PairedList<String, String> map = new PairedList<>();
 
         int lineIndex = 1;
@@ -80,12 +81,19 @@ public class ConfigFileIO {
             String op = line.substring(0,index);
 
             index++; // Skip spaces after the delimiter
-            while (line.charAt(index) == ' ') index++;
-            String arg = line.substring(index);
+            while (index < line.length() && line.charAt(index) == ' ') index++;
 
 
+            if (index < line.length()) {
+                String arg = line.substring(index);
+                map.add(op, arg);
+            } else {
+                System.out.println("No argument found after delimiter.");
+                map.add(op, null);
+            }
 
-            map.add(op, arg);
+
+            
             lineIndex++;
         }
         return map;

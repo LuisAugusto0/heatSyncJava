@@ -14,37 +14,13 @@ import com.heatsync.util.ArrayFill;
 import com.heatsync.util.PairedList;
 
 
-public class FanProfileConfigIO extends ConfigFileIO {
+public class FanProfileConfigIO {
 
-    final static public String maxCpuString = Operators.MaxCpu.label;
-    final static public String minCpuString = Operators.MinCpu.label;
-    final static public String maxGpuString = Operators.MaxGpu.label;
-    final static public String minGpuString = Operators.MinGpu.label;
-    final static public String maxSpeedString = Operators.MaxSpeed.label;
-    final static public String minSpeedString = Operators.MinSpeed.label;
-    final static public String curveGrowthConstantString = Operators.CurveGrowthConstant.label;
-    final static public String macAddressString = Operators.MacAddress.label;
 
-    final static PairedList<String, String> defaults = PairedList.asListPair(
-        Arrays.asList(
-            maxCpuString, 
-            minCpuString, 
-            maxGpuString, 
-            minGpuString,
-            maxSpeedString,
-            minSpeedString,
-            curveGrowthConstantString,
-            macAddressString
-        ), 
-        Arrays.asList(
-            "85", "30", "65", "30", "100", "0", "1", null
-        )
-    );
-
-    
 
     public enum Operators {
-        // "enum mapped to pair of values"
+        // The maximum value of code is associated with the size of many arrays
+        // It must not be unecessarily a big integer for no reason
         MaxCpu(0, "maxCpu"),
         MinCpu(1, "minCpu"),
         MaxGpu(2, "maxGpu"),
@@ -57,16 +33,32 @@ public class FanProfileConfigIO extends ConfigFileIO {
         private final int code;
         private final String label;
 
+
         static final Map<String, Operators> map = new HashMap<>(Map.ofEntries(
-            Map.entry(MaxCpu.label, Operators.MaxCpu),
-            Map.entry(MinCpu.label, Operators.MinCpu),
-            Map.entry(MaxGpu.label, Operators.MaxGpu),
-            Map.entry(MinGpu.label, Operators.MinGpu),
-            Map.entry(MaxSpeed.label, Operators.MaxSpeed),
-            Map.entry(MinSpeed.label, Operators.MinSpeed),
-            Map.entry(CurveGrowthConstant.label, Operators.CurveGrowthConstant),
-            Map.entry(MacAddress.label, Operators.MacAddress)
+            Map.entry(MaxCpu.label, MaxCpu),
+            Map.entry(MinCpu.label, MinCpu),
+            Map.entry(MaxGpu.label, MaxGpu),
+            Map.entry(MinGpu.label, MinGpu),
+            Map.entry(MaxSpeed.label, MaxSpeed),
+            Map.entry(MinSpeed.label, MinSpeed),
+            Map.entry(CurveGrowthConstant.label, CurveGrowthConstant),
+            Map.entry(MacAddress.label, MacAddress)
         ));
+
+        // Max code value. An array on the size of this variable can fit
+        // all elements of the enum safely
+        public static final int MAX_LIST_SIZE = computeMaxCode()+1;
+
+
+        private static int computeMaxCode() {
+            int max = -1;
+            for (Operators op : values()) {
+                if (op.code > max) {
+                    max = op.code;
+                }
+            }
+            return max;
+        }
     
         Operators(int code, String label) {
             this.code = code;
@@ -93,37 +85,40 @@ public class FanProfileConfigIO extends ConfigFileIO {
     
 
     public static class Response {
-        public int maxCpu = Integer.MIN_VALUE, minCpu =  Integer.MIN_VALUE, maxGpu = Integer.MIN_VALUE, 
-        minGpu = Integer.MIN_VALUE, minSpeed = Integer.MIN_VALUE, maxSpeed = Integer.MIN_VALUE;
-
-        public double curveGrowthConstant = Double.MIN_VALUE;
-        protected boolean[] valuesNull = ArrayFill.createFilledArray(Operators.values().length, true);
+        public Integer maxCpu = null, minCpu = null, maxGpu = null, minGpu = null, minSpeed = null, maxSpeed = null;
+        public Double curveGrowthConstant = null;
         public String macAddress = null;
 
+
+        // Table for checking if a operator was assigned
+        protected boolean[] valuesNull = ArrayFill.createFilledArray(Operators.MAX_LIST_SIZE, true);
+
+
+        // Null constructor
+        public Response() {}
+
+
         public boolean isValueNull(Operators code) { return valuesNull[code.getCode()]; }
-        public boolean isMaxCpuNull() { return valuesNull[Operators.MaxCpu.getCode()]; }
-        public boolean isMinCpuNull() { return valuesNull[Operators.MinCpu.getCode()]; }
-        public boolean isMaxGpuNull() { return valuesNull[Operators.MaxGpu.getCode()]; }
-        public boolean isMinGpuNull() { return valuesNull[Operators.MinGpu.getCode()]; }
-        public boolean isMaxSpeedNull() { return valuesNull[Operators.MaxSpeed.getCode()]; }
-        public boolean isMinSpeedNull() { return valuesNull[Operators.MinSpeed.getCode()]; }
-        public boolean isCurveGrowthCOnstantNull() { return valuesNull[Operators.CurveGrowthConstant.getCode()]; }
-        public boolean isMacAddressNull() { return valuesNull[Operators.MacAddress.getCode()]; }
 
-
-        public boolean noNullValues() {
-            boolean res = true;
-            if (isMaxCpuNull()) res = false;
-            else if (isMinCpuNull()) res = false;
-            else if (isMaxGpuNull()) res = false;
-            else if (isMinGpuNull()) res = false;
-            else if (isMaxSpeedNull()) res = false;
-            else if (isMinSpeedNull()) res = false;
-            else if (isCurveGrowthCOnstantNull()) res = false;
-            else if (isMacAddressNull()) res = false;
-            
-            return res;
+        public boolean existsNullValue() {
+            for (Operators op : Operators.values()) {
+                if (valuesNull[op.code]) {
+                    return true;
+                }
+            }
+            return false;
         }
+
+        public List<String> getNullValuesName() {
+            List<String> list = new ArrayList<>();
+            for (Operators op : Operators.values()) {
+                if (valuesNull[op.code]) {
+                    list.add(op.label);
+                }
+            }
+            return list;
+        }
+
 
         public void setMaxCpu(int i) { 
             valuesNull[Operators.MaxCpu.getCode()] = false;
@@ -162,33 +157,9 @@ public class FanProfileConfigIO extends ConfigFileIO {
 
         public void setMacAddress(String s) { 
             valuesNull[Operators.MacAddress.getCode()] = false;
+            System.out.println("FOUND MAC ADDRESS: " + s);
             macAddress = s;
         }
-
-        void addIntegerOperandResponse(Operators op, int val) throws ConfigIOException {
-            switch (op) {
-                case MaxCpu:
-                    setMaxCpu(val);
-                    break;
-                case MinCpu:
-                    setMinCpu(val);
-                    break;
-                case MaxGpu:
-                    setMaxGpu(val);
-                    break;
-                case MinGpu:
-                    setMinGpu(val);
-                    break;
-                case MaxSpeed:
-                    setMaxSpeed(val);
-                    break;
-                case MinSpeed:
-                    setMinSpeed(val);
-                    break;
-                default:
-                    throw new ConfigIOException("Not a integer operator for: " + op.label + ". Attempt to set integer values to it");
-            }
-        }   
 
     
 
@@ -246,6 +217,46 @@ public class FanProfileConfigIO extends ConfigFileIO {
             return new PairedList<>(opList, valList);
         }
 
+
+        void addIntegerOperandResponse(Operators op, int val) throws ConfigIOException {
+            switch (op) {
+                case MaxCpu:
+                    setMaxCpu(val);
+                    break;
+                case MinCpu:
+                    setMinCpu(val);
+                    break;
+                case MaxGpu:
+                    setMaxGpu(val);
+                    break;
+                case MinGpu:
+                    setMinGpu(val);
+                    break;
+                case MaxSpeed:
+                    setMaxSpeed(val);
+                    break;
+                case MinSpeed:
+                    setMinSpeed(val);
+                    break;
+                default:
+                    throw new ConfigIOException("Not a integer operator for: " + op.label + ". Attempt to set integer values to it");
+            }
+        }   
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(Operators.MaxCpu.getLabel() + " = {" + maxCpu + "}").append(System.lineSeparator());
+            sb.append(Operators.MinCpu.getLabel() + " = {" + minCpu + "}").append(System.lineSeparator());
+            sb.append(Operators.MaxGpu.getLabel() + " = {" + maxGpu + "}").append(System.lineSeparator());
+            sb.append(Operators.MinGpu.getLabel() + " = {" + minGpu + "}").append(System.lineSeparator());
+            sb.append(Operators.MaxSpeed.getLabel() + " = {" + maxSpeed + "}").append(System.lineSeparator());
+            sb.append(Operators.MinSpeed.getLabel() + " = {" + minSpeed + "}").append(System.lineSeparator());
+            sb.append(Operators.CurveGrowthConstant.getLabel() + " = {" + curveGrowthConstant + "}").append(System.lineSeparator());
+            sb.append(Operators.MacAddress.getLabel() + " = {" + macAddress + "}");
+            return sb.toString();
+        }
+
     }
     
 
@@ -253,7 +264,7 @@ public class FanProfileConfigIO extends ConfigFileIO {
 
     public static Response readSettingsFile(FileReader fileReader) 
     throws IOException, ConfigIOException {
-        PairedList<String,String> lists = readKeyValueAssociations(fileReader);
+        PairedList<String,String> lists = ConfigFileIO.readKeyValueAssociations(fileReader);
         List<String> operators = lists.first;
         List<String> values = lists.second;
 
@@ -309,13 +320,16 @@ public class FanProfileConfigIO extends ConfigFileIO {
                         );
                     }
                     break;
+
                 case MacAddress:
                     String val = values.get(i);
-                    if (val.isEmpty() && val.length() != 12) {
+                    System.out.println("get value: " + val);
+                    if (val.isEmpty()) {
                         errorTrace.append(
                             "Mac address {" + op.label + "} has non valid length argument {" + val + "} for file line " +
                             i+1 + System.lineSeparator()
                         );
+                        System.out.println("INVALID MAC");
                     } else {
                         response.setMacAddress(val);
                     }
@@ -324,21 +338,21 @@ public class FanProfileConfigIO extends ConfigFileIO {
         }
 
         String errorString = errorTrace.toString();
+        System.out.println(errorString);
         if (!errorString.isEmpty()) throw new ConfigIOException(errorString);
         
         return response;
     }
 
-    public static void writeDefaultConfig(File file) throws IOException, ConfigIOException {
-        writeSettingsFile(file, defaults);
+
+    public static void writeConfig(File file, PairedList<String, String> config) throws IOException {
+        ConfigFileIO.writeSettingsFile(file, config);
     }
 
-    public static void writeConfig(File file, PairedList<String, String> config) throws IOException, ConfigIOException {
-        writeSettingsFile(file, config);
-    }
+    public static void writeConfig(File file, Response response) throws IOException {
+        Thread.dumpStack();
 
-    public static void writeConfig(File file, Response response) throws IOException, ConfigIOException {
-        writeSettingsFile(file, response.toPairs());
+        ConfigFileIO.writeSettingsFile(file, response.toPairs());
     }
 }
 

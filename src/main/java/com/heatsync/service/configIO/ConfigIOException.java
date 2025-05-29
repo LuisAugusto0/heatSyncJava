@@ -1,11 +1,11 @@
 package com.heatsync.service.configIO;
 
 public class ConfigIOException extends Exception {
-    ConfigIOException() {
+    public ConfigIOException() {
         super();
     }
 
-    ConfigIOException(String s) {
+    public ConfigIOException(String s) {
         super(s);
     }
 }

@@ -1,8 +1,8 @@
 package com.heatsync.ui;
 
 import com.heatsync.service.BluetoothService;
-import com.heatsync.service.FanProfileIOService;
 import com.heatsync.service.configIO.FanProfileConfigIO;
+import com.heatsync.service.configIO.FanProfileIOService;
 import com.profesorfalken.jsensors.model.sensors.Fan;
 
 import javax.swing.*;

@@ -391,7 +391,7 @@ public class ProfilePanel extends JPanel {
             fanSpeedMinPanel.add(fanSpeedMinHelp);
             fanSpeedMinPanel.add(new JLabel("Fan Speed Min (%):"));
             configPanel.add(fanSpeedMinPanel);
-            minSpeedSpinner = new JSpinner(new SpinnerNumberModel(defaultCpuMinSpinner, 0, 100, 1));
+            minSpeedSpinner = new JSpinner(new SpinnerNumberModel(defaultMinSpeedSpinner, 0, 100, 1));
             configPanel.add(minSpeedSpinner);
             
             // Fan Speed Max

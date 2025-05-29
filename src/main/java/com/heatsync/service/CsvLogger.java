@@ -46,8 +46,13 @@ public class CsvLogger {
 
     public void start() {
         LocalDateTime now = LocalDateTime.now();
-        firstTimestampDateTime = now;
         String date = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+        // Ensure the logs directory exists
+        File logsDir = new File("logs");
+        if (!logsDir.exists()) {
+            logsDir.mkdirs(); // Create the directory if it doesn't exist
+        }
+
         // Create filename with current date
         String filePath = "logs/rpm_log_" + date + ".csv";
         csvFile = new File(filePath);
@@ -73,6 +78,8 @@ public class CsvLogger {
             try {
                 fileWriter.flush(); // Ensure all data is written to the file
                 fileWriter.close();
+                fileWriter = null; // Set to null to indicate the file is closed
+                firstTimestampDateTime = null; // Reset the first timestamp
                 logCallback.accept("CSV file closed successfully.");
             } catch (IOException e) {
                 LOGGER.severe("Error closing CSV file: " + e.getMessage());
@@ -89,9 +96,13 @@ public class CsvLogger {
             return;
         }
         LocalDateTime now = LocalDateTime.now();
+        if (firstTimestampDateTime == null) {
+            firstTimestampDateTime = now;
+            lastRpm = -1;
+        }
+
         String timestamp = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
         long secondsElapsed = java.time.Duration.between(firstTimestampDateTime.withNano(0), now.withNano(0)).getSeconds();
-        String relativeTime = String.format("%02d:%02d", secondsElapsed / 60, secondsElapsed % 60);
         // Check if the data is the same as the last logged data
         if (timestamp.equals(lastTimestamp)) {
             logCallback.accept("Data in the same timestamp, skipping log.");
@@ -105,11 +116,16 @@ public class CsvLogger {
                 while (lastTime.isBefore(now.minusSeconds(1).withNano(0))) {
                     lastTime = lastTime.plusSeconds(1);
                     String filledTimestamp = lastTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                    long secondsElapsedFill = java.time.Duration.between(firstTimestampDateTime.withNano(0), lastTime.withNano(0)).getSeconds();
+
+                    String relativeTime = String.format("%02d:%02d", secondsElapsedFill / 60, secondsElapsedFill % 60);
+                    relativeTime = String.format("%02d:%02d", secondsElapsedFill / 60, secondsElapsedFill % 60);
                     fileWriter.append("\n" + filledTimestamp + "," + relativeTime + "," + lastRpm + "," + lastIsTestRunning);
                     logCallback.accept("Filled gap in log: " + filledTimestamp + "," + relativeTime + "," + lastRpm + "," + lastIsTestRunning);
                 }
             } 
             // Write the new data to the CSV file
+            String relativeTime = String.format("%02d:%02d", secondsElapsed / 60, secondsElapsed % 60);
             fileWriter.append("\n" + timestamp + "," + relativeTime + "," + rpm + "," + isTestRunning);
             lastRpm = rpm;
             lastTimestamp = timestamp;

@@ -98,6 +98,10 @@ public class TemperaturePanel extends JPanel {
         revalidate();
         repaint();
     }
+
+    public void refresh_editButton() {
+        editFanProfileButton.setEnabled(mainWindow.getBluetoothService().isConnected());
+    }
     
     /**
      * Sets the mode of the panel and updates its UI accordingly.

@@ -338,6 +338,7 @@ public class BluetoothPanel implements BluetoothEventListener {
             dumpCheckBox.setEnabled(true); 
             scanButton.setEnabled(false);
             connectButton.setEnabled(false);
+            temperaturePanel.refresh_editButton();
         });
     }
 
@@ -363,6 +364,7 @@ public class BluetoothPanel implements BluetoothEventListener {
                 scanButton.setText("Scan for Devices");
                 scanButton.setEnabled(bluetoothService.isInitialized());
             }
+            temperaturePanel.refresh_editButton();
         });
     }
 

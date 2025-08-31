@@ -19,6 +19,9 @@ import java.io.InputStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.heatsync.service.BluetoothService;
+import com.heatsync.service.configIO.FanProfileIOService;
+import com.heatsync.ui.BluetoothPanel;
+import com.profesorfalken.jsensors.model.sensors.Fan;
 
 /**
  * BlueCove implementation of the Bluetooth manager.
@@ -46,6 +49,7 @@ public class BluetoothManager implements DiscoveryListener {
     private boolean isConnected = false;
     private Thread readThread;
     private volatile boolean keepReading = false;
+    private boolean firstReading = true; // Flag to indicate if it's the first reading
     
     // Executor for async operations
     private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -105,6 +109,10 @@ public class BluetoothManager implements DiscoveryListener {
             LOGGER.info("Local device obtained successfully");
             discoveryAgent = localDevice.getDiscoveryAgent();
             isInitialized = true;
+            if(FanProfileIOService.getMacAddress() != null) {
+                LOGGER.info("Attempting to connect to the last MAC address: {}", FanProfileIOService.getMacAddress());
+                startDeviceDiscovery();
+            } 
             LOGGER.info("BluetoothManager initialized successfully.");
             LOGGER.info("Local device address: {}", localDevice.getBluetoothAddress());
             LOGGER.info("Local device name: {}", localDevice.getFriendlyName());
@@ -299,6 +307,11 @@ public class BluetoothManager implements DiscoveryListener {
                     eventListener.onDeviceConnected(device);
                 }
                 
+            
+                FanProfileIOService.setMacAddress(deviceAddress); // Save the MAC address for future reference
+                
+                sendProfileData(FanProfileIOService.getMinCpu(), FanProfileIOService.getMinGpu(), FanProfileIOService.getMaxCpu(), FanProfileIOService.getMaxGpu(), FanProfileIOService.getMinSpeed(), FanProfileIOService.getMaxSpeed(), FanProfileIOService.getCurveGrowthConstant()); 
+                stopDeviceDiscovery(); // Stop discovery after connection
                 LOGGER.info("Successfully connected to device: {}", deviceAddress);
                 
             } catch (IOException e) {
@@ -739,6 +752,15 @@ public class BluetoothManager implements DiscoveryListener {
         }
 
         LOGGER.info("Discovery cycle ended: {}", completionType);
+
+        if (firstReading) {
+            LOGGER.info("Attempting to connect to the last MAC address: {}", FanProfileIOService.getMacAddress());
+            // Attempt to connect to the last known MAC address if available
+            connectToDevice(FanProfileIOService.getMacAddress());
+            // First reading completed, set the flag to false
+            firstReading = false;
+        }
+        
 
         if (restartScan) {
             // Restart the inquiry immediately

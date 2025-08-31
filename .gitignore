@@ -53,6 +53,8 @@ nbdist/
 
 # Logs
 *.log
+logs/
+*.csv
 
 # Arquivos do sistema operacional
 .DS_Store

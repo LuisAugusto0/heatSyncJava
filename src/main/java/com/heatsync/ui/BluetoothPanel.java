@@ -1,10 +1,16 @@
 package com.heatsync.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.GridLayout;
+import com.heatsync.service.BluetoothService;
+import com.heatsync.service.bluetooth.BluetoothEventListener;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -40,8 +46,8 @@ public class BluetoothPanel implements BluetoothEventListener {
     private JButton connectButton;
     private JButton disconnectButton;
     private JButton scanButton;
-    // private JToggleButton autoManualToggle;
-    // private JSlider fanSpeedSlider;
+    private JToggleButton autoManualToggle;
+    private JSlider fanSpeedSlider;
     
     // Data
     private Map<String, String> deviceAddressMap = new HashMap<>(); // Maps display string to device address
@@ -133,7 +139,8 @@ public class BluetoothPanel implements BluetoothEventListener {
         rssiPanel.add(rssiSlider, BorderLayout.CENTER);
         
         // Scan button
-        scanButton = new JButton("Scan for Devices");
+        scanning = bluetoothService.isScanning();
+        scanButton = new JButton(scanning ? "Stop Scanning" : "Scan for Devices");
         scanButton.setEnabled(bluetoothService.isInitialized());
         scanButton.addActionListener(new ActionListener() {
             @Override
@@ -200,19 +207,18 @@ public class BluetoothPanel implements BluetoothEventListener {
             }
         });
         
-        // // Auto/Manual mode toggle
-        // autoManualToggle = new JToggleButton("Mode: Automatic");
-        // autoManualToggle.setSelected(true);
-        // autoManualToggle.addItemListener(new ItemListener() {
-        //     @Override
-        //     public void itemStateChanged(ItemEvent e) {
-        //         autoMode = (e.getStateChange() == ItemEvent.SELECTED);
-        //         autoManualToggle.setText("Mode: " + (autoMode ? "Automatic" : "Manual"));
-        //         bluetoothService.sendConstantProfile(fanSpeedSlider.getValue());
-        //         fanSpeedSlider.setEnabled(!autoMode);
-        //         logCallback.accept("Mode changed to " + (autoMode ? "automatic" : "manual"));
-        //     }
-        // });
+        // Auto/Manual mode toggle
+        autoManualToggle = new JToggleButton("Mode: Automatic");
+        autoManualToggle.setSelected(true);
+        autoManualToggle.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                autoMode = (e.getStateChange() == ItemEvent.SELECTED);
+                autoManualToggle.setText("Mode: " + (autoMode ? "Automatic" : "Manual"));
+                fanSpeedSlider.setEnabled(!autoMode);
+                logCallback.accept("Mode changed to " + (autoMode ? "automatic" : "manual"));
+            }
+        });
         
         // // Fan speed slider
         // fanSpeedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
@@ -227,7 +233,7 @@ public class BluetoothPanel implements BluetoothEventListener {
         //         if (!fanSpeedSlider.getValueIsAdjusting() && !autoMode && bluetoothService.isConnected()) {
         //             int value = fanSpeedSlider.getValue();
         //             logCallback.accept("Setting fan speed to " + value + "%");
-        //             bluetoothService.sendConstantProfile(value);
+        //             bluetoothService.sendPwmCommand(value);
         //         }
         //     }
         // });
@@ -303,6 +309,7 @@ public class BluetoothPanel implements BluetoothEventListener {
             disconnectButton.setEnabled(true);
             scanButton.setEnabled(false);
             connectButton.setEnabled(false);
+            temperaturePanel.refresh_editButton();
         });
     }
 
@@ -315,13 +322,13 @@ public class BluetoothPanel implements BluetoothEventListener {
             connectionStatusLabel.setText("Status: Disconnected");
             connectionStatusLabel.setForeground(Color.RED);
             disconnectButton.setEnabled(false);
-            
+
             // Re-enable scan button if not already scanning
             if (!scanning) {
                 scanButton.setText("Scan for Devices");
                 scanButton.setEnabled(bluetoothService.isInitialized());
             }
-            
+            temperaturePanel.refresh_editButton();
         });
     }
 
@@ -373,13 +380,10 @@ public class BluetoothPanel implements BluetoothEventListener {
 
     @Override
     public void onFanRpmReceived(int rpm) {
-        // Implementação correta para tratar os valores de RPM recebidos
         SwingUtilities.invokeLater(() -> {
             // Aqui você pode atualizar um label ou outro componente da UI com o valor do RPM
             LOGGER.info("Fan RPM received: " + rpm);
             temperaturePanel.updateFanRpm(rpm); // Atualiza o painel de temperatura com o RPM recebido
-            
-            // Se você tiver um componente específico para mostrar o RPM, atualize-o aqui
         });
     }
 
@@ -392,4 +396,6 @@ public class BluetoothPanel implements BluetoothEventListener {
             logCallback.accept("Bluetooth scan stopped.");
         });
     }
+
+    
 }

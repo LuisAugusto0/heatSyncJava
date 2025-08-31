@@ -3,7 +3,11 @@ package com.heatsync;
 import com.heatsync.controller.MonitoringController;
 import com.heatsync.service.BluetoothService;
 import com.heatsync.service.TemperatureMonitor;
+import com.heatsync.service.configIO.ConfigIOException;
+import com.heatsync.service.configIO.FanProfileIOService;
 import com.heatsync.ui.MainWindow;
+import com.profesorfalken.jsensors.model.sensors.Fan;
+
 import javax.swing.*;
 import java.util.logging.Logger;
 
@@ -46,6 +50,11 @@ public class HeatSyncApp {
     private void initializeServices() {
         temperatureMonitor = new TemperatureMonitor();
         bluetoothService = new BluetoothService();
+
+        
+        if(FanProfileIOService.getMacAddress() == null && bluetoothService.isInitialized()) {
+            bluetoothService.connectToDevice(FanProfileIOService.getMacAddress());
+        }
     }
     
     /**
@@ -66,7 +75,17 @@ public class HeatSyncApp {
         } catch (Exception e) {
             LOGGER.warning("Could not set the system Look and Feel.");
         }
-
+        
+        try {
+            // If keepStateFlag is set to true, missing fields of the config file
+            // will not be updated with defaults. Instead warn about the errors and exits
+            // On false, no exceptions are received, even with no reading permission
+            FanProfileIOService.initiate(false);
+        } catch (ConfigIOException e) {
+            e.printStackTrace();
+            System.exit(1); //User opted exit from keepStateFlag being true
+        } 
+        
         SwingUtilities.invokeLater(() -> {
             HeatSyncApp app = new HeatSyncApp();
             app.show();

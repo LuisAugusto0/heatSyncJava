@@ -67,11 +67,9 @@ public class MonitoringController implements BluetoothEventListener {
         
         double cpuTemp = temperatureMonitor.getCpuTemperature();
         double gpuTemp = temperatureMonitor.getGpuTemperature();
-        double diskTemp = temperatureMonitor.getDiskTemperature();
         
         temperaturePanel.updateCpuTemperature(cpuTemp);
         temperaturePanel.updateGpuTemperature(gpuTemp);
-        temperaturePanel.updateDiskTemperature(diskTemp);
         // LOGGER.info("updateTemperatures() chamando temperaturePanel.updateFanRpm com rpm = " + currentFanRpm);
         // temperaturePanel.updateFanRpm(currentFanRpm);
     }

@@ -13,6 +13,15 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
+
+import com.profesorfalken.jsensors.JSensors;
+import com.profesorfalken.jsensors.model.components.Component;
+import com.profesorfalken.jsensors.model.components.Components;
+import com.profesorfalken.jsensors.model.components.Cpu;
+import com.profesorfalken.jsensors.model.components.Disk;
+import com.profesorfalken.jsensors.model.components.Gpu;
+import com.profesorfalken.jsensors.model.sensors.Temperature;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +60,8 @@ public class TemperatureMonitor {
     private boolean isHwInfoWorking = false;
     private InputStream hwInputStream;
 
+    private List<Disk> disks;
+    JSensors jSensorsTerminal;
 
     private static Map<String, String> config;
 
@@ -138,7 +149,6 @@ public class TemperatureMonitor {
                 .mapToDouble(temp -> normalizeTemperature(temp.value))
                 .average()
                 .orElse(0.0);
-        // disks = JSensors.get.components().disks;
     }
 
     /**

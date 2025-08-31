@@ -1,0 +1,8 @@
+maxCpu: 85
+minCpu: 45
+maxGpu: 65
+minGpu: 40
+maxSpeed: 100
+minSpeed: 30
+curveGrowthConstant: 1.0
+macAddress: 002500009D4C

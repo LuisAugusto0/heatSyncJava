@@ -1,10 +1,15 @@
 package com.heatsync.ui;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.logging.Logger;
-import java.awt.event.ActionListener;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.logging.Logger;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /**
  * Panel for displaying temperature and power consumption information.
@@ -14,12 +19,12 @@ public class TemperaturePanel extends JPanel {
     
     private JLabel cpuTempLabel;
     private JLabel gpuTempLabel;
-    private JLabel diskTempLabel;
     private JLabel fanRpmLabel;
+
     private JButton editFanProfileButton;
     private MainWindow mainWindow;
     private int currentMode;
-    
+
     /**
      * Creates a new temperature panel with all labels.
      * @param mainWindow The main window reference for layout changes
@@ -41,8 +46,8 @@ public class TemperaturePanel extends JPanel {
         
         cpuTempLabel = new JLabel("CPU Temperature: --,--°C");
         gpuTempLabel = new JLabel("GPU Temperature: --,--°C");
-        diskTempLabel = new JLabel("Disk Temperature: --,--°C");
         fanRpmLabel = new JLabel("Fan RPM: ---RPM");
+        
 
         editFanProfileButton = new JButton("Edit Fan Profile");
         editFanProfileButton.addActionListener(new ActionListener() {
@@ -72,15 +77,14 @@ public class TemperaturePanel extends JPanel {
         // Add the temperature labels (common to both modes)
         add(cpuTempLabel);
         add(gpuTempLabel);
-        add(diskTempLabel);
         add(fanRpmLabel);
-        
         // Only add edit button in mode 0 (default mode)
         if (mode == 0) {
             // Enable or disable the button based on the Bluetooth connection status.
             // Assumes mainWindow.getBluetoothService().isConnected() returns a boolean.
-            // editFanProfileButton.setEnabled(mainWindow.getBluetoothService().isConnected());
+            editFanProfileButton.setEnabled(mainWindow.getBluetoothService().isConnected());
             add(editFanProfileButton);
+            
             LOGGER.fine("Temperature panel in default mode with edit button");
         } else {
             add(new JLabel("")); // Placeholder in profile edit mode
@@ -90,6 +94,10 @@ public class TemperaturePanel extends JPanel {
         // These steps are crucial to refresh the UI
         revalidate();
         repaint();
+    }
+
+    public void refresh_editButton() {
+        editFanProfileButton.setEnabled(mainWindow.getBluetoothService().isConnected());
     }
     
     /**
@@ -111,6 +119,7 @@ public class TemperaturePanel extends JPanel {
     public int getMode() {
         return this.currentMode;
     }
+
     
     /**
      * Updates the CPU temperature display.
@@ -130,16 +139,6 @@ public class TemperaturePanel extends JPanel {
     public void updateGpuTemperature(double temperature) {
         SwingUtilities.invokeLater(() -> 
             gpuTempLabel.setText(String.format("GPU Temperature: %.2f°C", temperature)));
-    }
-    
-    /**
-     * Updates the disk temperature display.
-     * 
-     * @param temperature The disk temperature in Celsius
-     */
-    public void updateDiskTemperature(double temperature) {
-        SwingUtilities.invokeLater(() -> 
-            diskTempLabel.setText(String.format("Disk Temperature: %.2f°C", temperature)));
     }
     
     /**

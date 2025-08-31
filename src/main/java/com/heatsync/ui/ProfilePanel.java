@@ -1,6 +1,10 @@
 package com.heatsync.ui;
 
 import com.heatsync.service.BluetoothService;
+import com.heatsync.service.configIO.FanProfileConfigIO;
+import com.heatsync.service.configIO.FanProfileIOService;
+import com.profesorfalken.jsensors.model.sensors.Fan;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -29,6 +33,15 @@ public class ProfilePanel extends JPanel {
     private JSpinner minSpeedSpinner;
     private JSpinner maxSpeedSpinner;
     private JSpinner kSpinner;
+
+    private int defaultCpuMinSpinner;
+    private int defaultCpuMaxSpinner;
+    private int defaultGpuMinSpinner;
+    private int defaultGpuMaxSpinner;
+    private int defaultMinSpeedSpinner;
+    private int defaultMaxSpeedSpinner;
+    private double defaultKSpinner;
+
     
     /**
      * Creates a new ProfilePanel.
@@ -47,6 +60,14 @@ public class ProfilePanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createTitledBorder("Profile Editor"));
         
+        defaultCpuMaxSpinner = FanProfileIOService.getMaxCpu();
+        defaultCpuMinSpinner = FanProfileIOService.getMinCpu();
+        defaultGpuMaxSpinner = FanProfileIOService.getMaxGpu();
+        defaultGpuMinSpinner = FanProfileIOService.getMinGpu();
+        defaultMinSpeedSpinner = FanProfileIOService.getMinSpeed();
+        defaultMaxSpeedSpinner = FanProfileIOService.getMaxSpeed();
+        defaultKSpinner = FanProfileIOService.getCurveGrowthConstant();
+
         // Top panel with profile type selection
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         topPanel.add(new JLabel("Profile Type:"));
@@ -205,7 +226,7 @@ public class ProfilePanel extends JPanel {
             cpuMinPanel.add(cpuMinHelp);
             cpuMinPanel.add(new JLabel("CPU Min Temp (°C):"));
             configPanel.add(cpuMinPanel);
-            cpuMinSpinner = new JSpinner(new SpinnerNumberModel(30, 30, 100, 1));
+            cpuMinSpinner = new JSpinner(new SpinnerNumberModel(defaultCpuMinSpinner, 30, 100, 1));
             configPanel.add(cpuMinSpinner);
             
             // CPU Max Temp
@@ -225,7 +246,7 @@ public class ProfilePanel extends JPanel {
             cpuMaxPanel.add(cpuMaxHelp);
             cpuMaxPanel.add(new JLabel("CPU Max Temp (°C):"));
             configPanel.add(cpuMaxPanel);
-            cpuMaxSpinner = new JSpinner(new SpinnerNumberModel(85, 30, 100, 1));
+            cpuMaxSpinner = new JSpinner(new SpinnerNumberModel(defaultCpuMaxSpinner, 30, 100, 1));
             configPanel.add(cpuMaxSpinner);
             
             // GPU Min Temp
@@ -245,7 +266,7 @@ public class ProfilePanel extends JPanel {
             gpuMinPanel.add(gpuMinHelp);
             gpuMinPanel.add(new JLabel("GPU Min Temp (°C):"));
             configPanel.add(gpuMinPanel);
-            gpuMinSpinner = new JSpinner(new SpinnerNumberModel(30, 30, 100, 1));
+            gpuMinSpinner = new JSpinner(new SpinnerNumberModel(defaultGpuMinSpinner, 30, 100, 1));
             configPanel.add(gpuMinSpinner);
             
             // GPU Max Temp
@@ -290,7 +311,7 @@ public class ProfilePanel extends JPanel {
             cpuMinPanel.add(cpuMinHelp);
             cpuMinPanel.add(new JLabel("CPU Min Temp (°C):"));
             configPanel.add(cpuMinPanel);
-            cpuMinSpinner = new JSpinner(new SpinnerNumberModel(30, 30, 100, 1));
+            cpuMinSpinner = new JSpinner(new SpinnerNumberModel(defaultCpuMinSpinner, 30, 100, 1));
             configPanel.add(cpuMinSpinner);
             
             // CPU Max Temp
@@ -310,7 +331,7 @@ public class ProfilePanel extends JPanel {
             cpuMaxPanel.add(cpuMaxHelp);
             cpuMaxPanel.add(new JLabel("CPU Max Temp (°C):"));
             configPanel.add(cpuMaxPanel);
-            cpuMaxSpinner = new JSpinner(new SpinnerNumberModel(85, 30, 100, 1));
+            cpuMaxSpinner = new JSpinner(new SpinnerNumberModel(defaultCpuMaxSpinner, 30, 100, 1));
             configPanel.add(cpuMaxSpinner);
             
             // GPU Min Temp
@@ -330,7 +351,7 @@ public class ProfilePanel extends JPanel {
             gpuMinPanel.add(gpuMinHelp);
             gpuMinPanel.add(new JLabel("GPU Min Temp (°C):"));
             configPanel.add(gpuMinPanel);
-            gpuMinSpinner = new JSpinner(new SpinnerNumberModel(30, 30, 100, 1));
+            gpuMinSpinner = new JSpinner(new SpinnerNumberModel(defaultGpuMinSpinner, 30, 100, 1));
             configPanel.add(gpuMinSpinner);
             
             // GPU Max Temp
@@ -350,7 +371,7 @@ public class ProfilePanel extends JPanel {
             gpuMaxPanel.add(gpuMaxHelp);
             gpuMaxPanel.add(new JLabel("GPU Max Temp (°C):"));
             configPanel.add(gpuMaxPanel);
-            gpuMaxSpinner = new JSpinner(new SpinnerNumberModel(65, 30, 100, 1));
+            gpuMaxSpinner = new JSpinner(new SpinnerNumberModel(defaultGpuMaxSpinner, 30, 100, 1));
             configPanel.add(gpuMaxSpinner);
             
             // Fan Speed Min
@@ -370,7 +391,7 @@ public class ProfilePanel extends JPanel {
             fanSpeedMinPanel.add(fanSpeedMinHelp);
             fanSpeedMinPanel.add(new JLabel("Fan Speed Min (%):"));
             configPanel.add(fanSpeedMinPanel);
-            minSpeedSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
+            minSpeedSpinner = new JSpinner(new SpinnerNumberModel(defaultMinSpeedSpinner, 0, 100, 1));
             configPanel.add(minSpeedSpinner);
             
             // Fan Speed Max
@@ -390,7 +411,7 @@ public class ProfilePanel extends JPanel {
             fanSpeedMaxPanel.add(fanSpeedMaxHelp);
             fanSpeedMaxPanel.add(new JLabel("Fan Speed Max (%):"));
             configPanel.add(fanSpeedMaxPanel);
-            maxSpeedSpinner = new JSpinner(new SpinnerNumberModel(100, 0, 100, 1));
+            maxSpeedSpinner = new JSpinner(new SpinnerNumberModel(defaultMaxSpeedSpinner, 0, 100, 1));
             configPanel.add(maxSpeedSpinner);
             
             // Parameter k
@@ -412,7 +433,7 @@ public class ProfilePanel extends JPanel {
             kPanel.add(kHelpLabel);
             kPanel.add(new JLabel("Exponent K value:"));
             configPanel.add(kPanel);
-            kSpinner = new JSpinner(new SpinnerNumberModel(1.0d, 0.25d, 2.0d, 0.1d));
+            kSpinner = new JSpinner(new SpinnerNumberModel(defaultKSpinner, 0.25d, 2.0d, 0.1d));
             configPanel.add(kSpinner);
         }
         

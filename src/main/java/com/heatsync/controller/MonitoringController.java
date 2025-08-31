@@ -1,14 +1,14 @@
 package com.heatsync.controller;
 
-import com.heatsync.service.BluetoothService;
-import com.heatsync.service.TemperatureMonitor;
-import com.heatsync.ui.BluetoothPanel;
-import com.heatsync.ui.TemperaturePanel;
-import com.heatsync.service.bluetooth.BluetoothEventListener;
-
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
+
+import com.heatsync.service.BluetoothService;
+import com.heatsync.service.TemperatureMonitor;
+import com.heatsync.service.bluetooth.BluetoothEventListener;
+import com.heatsync.ui.BluetoothPanel;
+import com.heatsync.ui.TemperaturePanel;
 
 /**
  * Controller that coordinates temperature and power monitoring services
@@ -56,7 +56,7 @@ public class MonitoringController implements BluetoothEventListener {
                 // updatePowerConsumption();
                 sendDataIfNeeded();
             }
-        }, 0, 2000); // Update every 2 seconds
+        }, 0, 1500); // Update every 1.5 seconds
     }
     
     /**

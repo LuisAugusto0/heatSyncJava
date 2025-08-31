@@ -1,20 +1,29 @@
 package com.heatsync.ui;
 
-import com.heatsync.service.BluetoothService;
-import com.heatsync.service.bluetooth.BluetoothEventListener;
-
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JToggleButton;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+
+import com.heatsync.service.BluetoothService;
+import com.heatsync.service.bluetooth.BluetoothEventListener;
 
 /**
  * Panel for managing Bluetooth device discovery, connection, and control.
@@ -31,8 +40,8 @@ public class BluetoothPanel implements BluetoothEventListener {
     private JButton connectButton;
     private JButton disconnectButton;
     private JButton scanButton;
-    private JToggleButton autoManualToggle;
-    private JSlider fanSpeedSlider;
+    // private JToggleButton autoManualToggle;
+    // private JSlider fanSpeedSlider;
     
     // Data
     private Map<String, String> deviceAddressMap = new HashMap<>(); // Maps display string to device address
@@ -191,36 +200,37 @@ public class BluetoothPanel implements BluetoothEventListener {
             }
         });
         
-        // Auto/Manual mode toggle
-        autoManualToggle = new JToggleButton("Mode: Automatic");
-        autoManualToggle.setSelected(true);
-        autoManualToggle.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                autoMode = (e.getStateChange() == ItemEvent.SELECTED);
-                autoManualToggle.setText("Mode: " + (autoMode ? "Automatic" : "Manual"));
-                fanSpeedSlider.setEnabled(!autoMode);
-                logCallback.accept("Mode changed to " + (autoMode ? "automatic" : "manual"));
-            }
-        });
+        // // Auto/Manual mode toggle
+        // autoManualToggle = new JToggleButton("Mode: Automatic");
+        // autoManualToggle.setSelected(true);
+        // autoManualToggle.addItemListener(new ItemListener() {
+        //     @Override
+        //     public void itemStateChanged(ItemEvent e) {
+        //         autoMode = (e.getStateChange() == ItemEvent.SELECTED);
+        //         autoManualToggle.setText("Mode: " + (autoMode ? "Automatic" : "Manual"));
+        //         bluetoothService.sendConstantProfile(fanSpeedSlider.getValue());
+        //         fanSpeedSlider.setEnabled(!autoMode);
+        //         logCallback.accept("Mode changed to " + (autoMode ? "automatic" : "manual"));
+        //     }
+        // });
         
-        // Fan speed slider
-        fanSpeedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
-        fanSpeedSlider.setMajorTickSpacing(20);
-        fanSpeedSlider.setMinorTickSpacing(5);
-        fanSpeedSlider.setPaintTicks(true);
-        fanSpeedSlider.setPaintLabels(true);
-        fanSpeedSlider.setEnabled(false);
-        fanSpeedSlider.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                if (!fanSpeedSlider.getValueIsAdjusting() && !autoMode && bluetoothService.isConnected()) {
-                    int value = fanSpeedSlider.getValue();
-                    logCallback.accept("Setting fan speed to " + value + "%");
-                    bluetoothService.sendPwmCommand(value);
-                }
-            }
-        });
+        // // Fan speed slider
+        // fanSpeedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+        // fanSpeedSlider.setMajorTickSpacing(20);
+        // fanSpeedSlider.setMinorTickSpacing(5);
+        // fanSpeedSlider.setPaintTicks(true);
+        // fanSpeedSlider.setPaintLabels(true);
+        // fanSpeedSlider.setEnabled(false);
+        // fanSpeedSlider.addChangeListener(new ChangeListener() {
+        //     @Override
+        //     public void stateChanged(ChangeEvent e) {
+        //         if (!fanSpeedSlider.getValueIsAdjusting() && !autoMode && bluetoothService.isConnected()) {
+        //             int value = fanSpeedSlider.getValue();
+        //             logCallback.accept("Setting fan speed to " + value + "%");
+        //             bluetoothService.sendConstantProfile(value);
+        //         }
+        //     }
+        // });
         
         // Add components to control panel
         controlPanel.add(connectionStatusLabel);
@@ -228,8 +238,8 @@ public class BluetoothPanel implements BluetoothEventListener {
         controlPanel.add(scanButton);
         controlPanel.add(connectButton);
         controlPanel.add(disconnectButton);
-        controlPanel.add(autoManualToggle);
-        controlPanel.add(fanSpeedSlider);
+        // controlPanel.add(autoManualToggle);
+        // controlPanel.add(fanSpeedSlider);
     }
     
     /**
@@ -352,14 +362,14 @@ public class BluetoothPanel implements BluetoothEventListener {
         return autoMode;
     }
 
-    /**
-     * Gets the fan speed value from slider (0-100).
-     * 
-     * @return The fan speed value
-     */
-    public int getFanSpeed() {
-        return fanSpeedSlider.getValue();
-    }
+    // /**
+    //  * Gets the fan speed value from slider (0-100).
+    //  * 
+    //  * @return The fan speed value
+    //  */
+    // public int getFanSpeed() {
+    //     return fanSpeedSlider.getValue();
+    // }
 
     @Override
     public void onFanRpmReceived(int rpm) {

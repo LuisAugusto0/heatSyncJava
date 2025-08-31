@@ -1,13 +1,10 @@
 package com.heatsync.service;
 
-import com.heatsync.service.bluetooth.BluetoothEventListener;
-import com.heatsync.service.bluetooth.BluetoothManager;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.heatsync.service.bluetooth.BluetoothEventListener;
+import com.heatsync.service.bluetooth.BluetoothManager;
 
 /**
  * Service that handles Bluetooth communication with peripherals.
@@ -91,15 +88,6 @@ public class BluetoothService implements BluetoothEventListener {
      */
     public boolean sendTemperatureData(double cpuTemp, double gpuTemp, double diskTemp) {
         return bluetoothManager.sendTemperatureData(cpuTemp, gpuTemp, diskTemp);
-    }
-    
-    /**
-     * Sends a PWM value to the connected peripheral.
-     * @param pwmValue PWM value (e.g., 0-100).
-     * @return true if the command was sent, false otherwise.
-     */
-    public boolean sendPwmCommand(int pwmValue) {
-        return bluetoothManager.sendPwmCommand(pwmValue);
     }
     
     /**

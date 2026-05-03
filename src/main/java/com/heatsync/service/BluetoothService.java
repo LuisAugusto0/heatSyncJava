@@ -85,6 +85,22 @@ public class BluetoothService implements BluetoothEventListener {
     public boolean connectToDevice(String deviceAddress) {
         return bluetoothManager.connectToDevice(deviceAddress);
     }
+
+    /**
+     * Attempts to reconnect to the last saved device MAC address.
+     *
+     * @return true if a reconnect attempt was initiated, false otherwise
+     */
+    public boolean reconnectToDevice() {
+        String macAddress = FanProfileIOService.getMacAddress();
+        if (macAddress == null || macAddress.trim().isEmpty()) {
+            LOGGER.warn("Cannot reconnect: no saved MAC address available.");
+            return false;
+        }
+
+        LOGGER.info("Attempting reconnect to saved MAC address: {}", macAddress);
+        return bluetoothManager.reconnectToSavedMac();
+    }
     
     /**
      * Sends temperature data to the connected peripheral.

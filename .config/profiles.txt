@@ -1,7 +1,7 @@
 maxCpu: 85
-minCpu: 45
-maxGpu: 65
-minGpu: 40
+minCpu: 50
+maxGpu: 80
+minGpu: 50
 maxSpeed: 100
 minSpeed: 30
 curveGrowthConstant: 1.0

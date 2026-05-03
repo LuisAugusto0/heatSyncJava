@@ -78,7 +78,18 @@ public class TemperatureMonitor {
      */
     private void initializeComponents(){
         try {
-            isHwInfoWorking = openInputStream();
+            for (int attempt = 0; attempt < 5; attempt++) {
+                isHwInfoWorking = openInputStream();
+                if (isHwInfoWorking) {
+                    break;
+                }
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
         } catch (SocketException e) {
             System.out.println("SocketException occurred while initializing components: " + e.getMessage());
         } catch (IOException e) {

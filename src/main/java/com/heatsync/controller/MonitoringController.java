@@ -21,6 +21,12 @@ public class MonitoringController implements BluetoothEventListener {
     private final BluetoothService bluetoothService;
     private final TemperaturePanel temperaturePanel;
     private final BluetoothPanel bluetoothPanel;
+    private int temperatureTolerance = 3;
+    private int cpuTolerancyCount = 0;
+    private int gpuTolerancyCount = 0;
+    private int cpuTempSnapshot = 0;
+    private int gpuTempSnapshot = 0;
+    private boolean canSendTemperature = false;
     
     private Timer updateTimer;
     
@@ -56,7 +62,7 @@ public class MonitoringController implements BluetoothEventListener {
                 // updatePowerConsumption();
                 sendDataIfNeeded();
             }
-        }, 0, 1500); // Update every 1.5 seconds
+        }, 0, 1000); // Update every 1 seconds
     }
     
     /**
@@ -67,6 +73,8 @@ public class MonitoringController implements BluetoothEventListener {
         
         double cpuTemp = temperatureMonitor.getCpuTemperature();
         double gpuTemp = temperatureMonitor.getGpuTemperature();
+
+        updateTemperatureCouters((int) cpuTemp, (int) gpuTemp);
         
         temperaturePanel.updateCpuTemperature(cpuTemp);
         temperaturePanel.updateGpuTemperature(gpuTemp);
@@ -104,16 +112,90 @@ public class MonitoringController implements BluetoothEventListener {
      * Sends temperature data to connected Bluetooth device if needed.
      */
     private void sendDataIfNeeded() {
+        if (!bluetoothPanel.isAutoMode()) {
+            return;
+        }
         if (bluetoothService.isConnected()) {
-            // In auto mode, send temperature data to device
-            if (bluetoothPanel.isAutoMode()) {
+            if (canSendTemperature) {
                 double cpuTemp = temperatureMonitor.getCpuTemperature();
                 double gpuTemp = temperatureMonitor.getGpuTemperature();
                 double diskTemp = temperatureMonitor.getDiskTemperature();
-                
-                bluetoothService.sendTemperatureData(cpuTemp, gpuTemp, diskTemp);
+                boolean sent = bluetoothService.sendTemperatureData(cpuTemp, gpuTemp, diskTemp);
+                if (!sent && bluetoothService.isInitialized()) {
+                    LOGGER.info("Bluetooth send failed. Attempting reconnect using saved MAC address...");
+                    bluetoothService.reconnectToDevice();
+                } else if (sent) {
+                    LOGGER.info("Temperature data sent via Bluetooth: CPU=" + cpuTemp + "°C, GPU=" + gpuTemp + "°C, Disk=" + diskTemp + "°C");
+                    canSendTemperature = false; // Reset flag until next significant change
+                }
+            } else {
+                LOGGER.info("Temperature change within tolerance. Skipping Bluetooth update.");
             }
+        } else if (bluetoothService.isInitialized()) {
+            LOGGER.info("Bluetooth is disconnected. Attempting reconnect using saved MAC address...");
+            bluetoothService.reconnectToDevice();
         }
+    }
+
+    private void updateCpuCount(int cpuTemp){
+        if(cpuTemp > cpuTempSnapshot){
+            if(cpuTolerancyCount < 0){
+                cpuTolerancyCount = 0;
+                cpuTempSnapshot = cpuTemp;
+            } else {
+                cpuTolerancyCount++;
+            } 
+            
+        } else if(cpuTemp < cpuTempSnapshot){
+            if(cpuTolerancyCount > 0) {
+                cpuTolerancyCount = 0;
+                cpuTempSnapshot = cpuTemp;
+            }
+            else cpuTolerancyCount--;
+        }
+        LOGGER.info("Tolerância cpu: " + cpuTolerancyCount + " Limite: " + temperatureTolerance);
+    }
+
+    private void updateGpuCount(int gpuTemp){
+        if(gpuTemp > gpuTempSnapshot){
+            if(gpuTolerancyCount < 0){
+                gpuTolerancyCount = 0;
+                gpuTempSnapshot = gpuTemp;
+            } else {
+                gpuTolerancyCount++;
+            } 
+            
+        } else if(gpuTemp < gpuTempSnapshot){
+            if(gpuTolerancyCount > 0) {
+                gpuTolerancyCount = 0;
+                gpuTempSnapshot = gpuTemp;
+            }
+            else gpuTolerancyCount--;
+        }
+        LOGGER.info("Tolerância gpu: " + gpuTolerancyCount + " Limite: " + temperatureTolerance);
+    }
+
+    private void updateTemperatureCouters(int cpuTemp, int gpuTemp){
+        if(isInTolerance()) {
+            canSendTemperature = false;
+            updateCpuCount(cpuTemp);
+            updateGpuCount(gpuTemp); 
+        } else {
+            canSendTemperature = true;
+            gpuTolerancyCount = 0;
+            cpuTolerancyCount = 0;
+            gpuTempSnapshot = gpuTemp;
+            cpuTempSnapshot = cpuTemp;
+        }
+        
+    }
+
+    private boolean isInTolerance(){
+        return Math.abs(gpuTolerancyCount) < temperatureTolerance && Math.abs(cpuTolerancyCount) < temperatureTolerance;
+    }
+
+    public void setTemperatureTolerance(int temperatureTolerance) {
+        this.temperatureTolerance = Math.max(1, temperatureTolerance);
     }
     
     /**

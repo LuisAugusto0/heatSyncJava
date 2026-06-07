@@ -2,6 +2,8 @@
 
 Uma aplicação desktop Java para monitorar temperaturas do sistema e controlar dispositivos de resfriamento externos via Bluetooth.
 
+![Introdução do aplicativo](HeatSync_home.png)
+
 ## Recursos
 
 - Monitoramento de temperatura em tempo real para:
